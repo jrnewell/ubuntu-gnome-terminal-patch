@@ -3,7 +3,7 @@
 Originally from [Tomba's Blog](http://www.taika.org/~tomba/gnome-terminal/index.html),
 a patch to add PuTTY-like copy on select and right-click paste to Gnome Terminal in Ubuntu.
 
-I built the patched version on Ubunty Trusty 14.04, Gnome Terminal 3.6.2.
+I built the patched version on 64-bit Ubunty Trusty 14.04, Gnome Terminal 3.6.2.
 
 ## Building Instructions using Patch
 
