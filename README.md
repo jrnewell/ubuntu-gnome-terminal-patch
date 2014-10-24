@@ -17,33 +17,33 @@ sudo dpkg -i *.deb
 
 1. Install build dependencies
 
-```shellsession
-sudo apt-get build-dep gnome-terminal
-```
+  ```shellsession
+  sudo apt-get build-dep gnome-terminal
+  ```
 
 2. Download the sources and apply the patch
 
-```shellsession
-mkdir gnome-terminal
-cd gnome-terminal
-apt-get source gnome-terminal
-cd gnome-terminal-3.6.2
-wget https://raw.githubusercontent.com/jrnewell/ubuntu-gnome-terminal-patch/master/gnome-terminal.patch
-patch -p1 < gnome-terminal.patch
-```
+  ```shellsession
+  mkdir gnome-terminal
+  cd gnome-terminal
+  apt-get source gnome-terminal
+  cd gnome-terminal-3.6.2
+  wget https://raw.githubusercontent.com/jrnewell/ubuntu-gnome-terminal-patch/master/gnome-terminal.patch
+  patch -p1 < gnome-terminal.patch
+  ```
 
 3. Build
 
-```shellsession
-dpkg-buildpackage -us -uc -b
-```
+  ```shellsession
+  dpkg-buildpackage -us -uc -b
+  ```
 
 4. Install
 
-```shellsession
-cd ..
-sudo dpkg -i *.deb
-```
+  ```shellsession
+  cd ..
+  sudo dpkg -i *.deb
+  ```
 
 ## License
 
