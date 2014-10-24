@@ -9,13 +9,13 @@ I built the patched version on 64-bit Ubunty Trusty 14.04, Gnome Terminal 3.6.2.
 
 1. Install build dependencies
 
-```bash
+```shellsession
 sudo apt-get build-dep gnome-terminal
 ```
 
 2. Download the sources and apply the patch
 
-```bash
+```shellsession
 mkdir gnome-terminal
 cd gnome-terminal
 apt-get source gnome-terminal
@@ -25,13 +25,13 @@ patch -p1 < gnome-terminal.patch
 
 3. Build
 
-```bash
+```shellsession
 dpkg-buildpackage -us -uc -b
 ```
 
 4. Install
 
-```bash
+```shellsession
 cd ..
 dpkg -i *.deb
 ```
