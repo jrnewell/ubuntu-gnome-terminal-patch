@@ -1,0 +1,33 @@
+Format: 1.8
+Date: Mon, 16 Dec 2013 11:20:47 +1300
+Source: gnome-terminal
+Binary: gnome-terminal gnome-terminal-data
+Architecture: all amd64
+Version: 3.6.2-0ubuntu1
+Distribution: trusty
+Urgency: medium
+Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
+Changed-By: Robert Ancell <robert.ancell@canonical.com>
+Description: 
+ gnome-terminal - GNOME terminal emulator application
+ gnome-terminal-data - Data files for the GNOME terminal emulator
+Changes: 
+ gnome-terminal (3.6.2-0ubuntu1) trusty; urgency=medium
+ .
+   * New upstream release:
+     - Fix window size changes on focus out
+     - Translation updates
+   * debian/control.in:
+     - Use standards-version 3.9.4
+   * debian/patches/00_git_fix_geometry_on_focusout.patch:
+     - Applied upstream
+Checksums-Sha1: 
+ 59c7bab260ac6e653a08752c61856561ec73d76e 1193686 gnome-terminal-data_3.6.2-0ubuntu1_all.deb
+ d3c212f856a188eb196981de37f77bf83e39378c 491912 gnome-terminal_3.6.2-0ubuntu1_amd64.deb
+Checksums-Sha256: 
+ 1fd44e27c2422db696a22acee8ecc1d7392a05b8109a935184cee823964accfc 1193686 gnome-terminal-data_3.6.2-0ubuntu1_all.deb
+ 3d9ca57701a609b81144a9f196d72c057006bfbcdb2a64120c749e76fd09505c 491912 gnome-terminal_3.6.2-0ubuntu1_amd64.deb
+Files: 
+ 1932eedd7bd11b906878842d6c4de1a8 1193686 gnome optional gnome-terminal-data_3.6.2-0ubuntu1_all.deb
+ 85d2bd965bfd04648bb9fbf45364b86a 491912 gnome optional gnome-terminal_3.6.2-0ubuntu1_amd64.deb
+Original-Maintainer: Guilherme de S. Pastore <gpastore@debian.org>
