@@ -5,6 +5,14 @@ a patch to add PuTTY-like copy on select and right-click paste to Gnome Terminal
 
 I built the patched version on 64-bit Ubunty Trusty 14.04, Gnome Terminal 3.6.2.
 
+## Install Instructions using Binaries
+
+```shellsession
+git clone https://github.com/jrnewell/ubuntu-gnome-terminal-patch.git
+cd ubuntu-gnome-terminal-patch
+sudo dpkg -i *.deb
+```
+
 ## Building Instructions using Patch
 
 1. Install build dependencies
@@ -20,6 +28,7 @@ mkdir gnome-terminal
 cd gnome-terminal
 apt-get source gnome-terminal
 cd gnome-terminal-3.6.2
+wget https://raw.githubusercontent.com/jrnewell/ubuntu-gnome-terminal-patch/master/gnome-terminal.patch
 patch -p1 < gnome-terminal.patch
 ```
 
@@ -33,7 +42,7 @@ dpkg-buildpackage -us -uc -b
 
 ```shellsession
 cd ..
-dpkg -i *.deb
+sudo dpkg -i *.deb
 ```
 
 ## License
