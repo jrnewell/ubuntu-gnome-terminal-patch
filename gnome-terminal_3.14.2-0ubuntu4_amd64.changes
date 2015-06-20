@@ -1,0 +1,27 @@
+Format: 1.8
+Date: Sat, 20 Jun 2015 10:42:02 -0700
+Source: gnome-terminal
+Binary: gnome-terminal gnome-terminal-data
+Architecture: all amd64
+Version: 3.14.2-0ubuntu4
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Changed-By: James Newell <james@ubuntu-vm>
+Description:
+ gnome-terminal - GNOME terminal emulator application
+ gnome-terminal-data - Data files for the GNOME terminal emulator
+Changes:
+ gnome-terminal (3.14.2-0ubuntu4) UNRELEASED; urgency=medium
+ .
+   * Add support for right-click paste
+Checksums-Sha1:
+ 0e96be2588fa2077178c325c5f3692c90a88069f 1275556 gnome-terminal-data_3.14.2-0ubuntu4_all.deb
+ 90957e9bef9389a5b25f439c2fbfa624b47c739b 659412 gnome-terminal_3.14.2-0ubuntu4_amd64.deb
+Checksums-Sha256:
+ 44393fe08debf9346b08954e1c8ce2b03b9a53246cb18b9d208c7ea9d388a0ec 1275556 gnome-terminal-data_3.14.2-0ubuntu4_all.deb
+ 0acc4851c15255007b5de643dde56a059f11190a8c1d9aa879a54f24f3147916 659412 gnome-terminal_3.14.2-0ubuntu4_amd64.deb
+Files:
+ b30cdcb2d3fe66dfe62640294d745f02 1275556 gnome optional gnome-terminal-data_3.14.2-0ubuntu4_all.deb
+ a1f28ce37993f279e04c0dd608d4f904 659412 gnome optional gnome-terminal_3.14.2-0ubuntu4_amd64.deb
+Original-Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>

@@ -1,0 +1,13 @@
+nautilus-x11.patch
+01_onlyshowin.patch
+10_kfreebsd-f_dupfd_cloexec.patch
+Don-t-allow-the-theme-to-set-black-on-black.patch
+50_add_unity_quicklist.patch
+52_support_apturl.patch
+60_add_lp_handler.patch
+61_cwd_fallback.patch
+0001-Restore-transparency.patch
+0001-window-Make-the-drawing-robust-across-all-themes.patch
+gnome-shell_search_provider.patch
+0001-client-legacy-Fall-back-to-default-profile.patch
+62_right_click_paste.patch
