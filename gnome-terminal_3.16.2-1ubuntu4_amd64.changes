@@ -1,0 +1,31 @@
+Format: 1.8
+Date: Mon, 19 Oct 2015 13:06:20 +0100
+Source: gnome-terminal
+Binary: gnome-terminal gnome-terminal-data
+Architecture: all amd64
+Version: 3.16.2-1ubuntu4
+Distribution: wily
+Urgency: medium
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Changed-By: Iain Lane <iain@orangesquash.org.uk>
+Description:
+ gnome-terminal - GNOME terminal emulator application
+ gnome-terminal-data - Data files for the GNOME terminal emulator
+Launchpad-Bugs-Fixed: 1500671
+Changes:
+ gnome-terminal (3.16.2-1ubuntu4) wily; urgency=medium
+ .
+   * debian/patches/0001-Restore-transparency.patch: Pass the correct parent
+     dialog to terminal_app_edit_profile () for the TreeView's row-activated
+     callback, fixing crash when double clicking a profile name in the list.
+     (LP: #1500671)
+Checksums-Sha1:
+ 8b6a7acf3fa1db16d1b7c1df7cf410146533064f 1294962 gnome-terminal-data_3.16.2-1ubuntu4_all.deb
+ 2ce9e456b06d81dd2e8cffe06c7a635af4ecf8c0 675736 gnome-terminal_3.16.2-1ubuntu4_amd64.deb
+Checksums-Sha256:
+ 9d134f1173bcf3bed6abd4d7e0b5eae88f7caac7d9d7888bb2c21ac744320ebf 1294962 gnome-terminal-data_3.16.2-1ubuntu4_all.deb
+ 56ba31d71bf3884b9a4a7dbc7a92871bad543bd68972d3b49362d0cf80567fe5 675736 gnome-terminal_3.16.2-1ubuntu4_amd64.deb
+Files:
+ 1c7aba5588e74faef39d4a7fa2e282b3 1294962 gnome optional gnome-terminal-data_3.16.2-1ubuntu4_all.deb
+ a9e92f33029f4cfbb48cf2cca6c1ef55 675736 gnome optional gnome-terminal_3.16.2-1ubuntu4_amd64.deb
+Original-Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>

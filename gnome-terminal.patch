@@ -1,6 +1,6 @@
---- terminal-screen-orig.c	2015-06-20 00:00:41.000000000 -0400
-+++ terminal-screen.c	2015-06-19 23:57:30.000000000 -0400
-@@ -131,6 +131,8 @@
+--- terminal-screen-orig.c  2015-11-08 16:31:54.357079394 -0800
++++ terminal-screen.c 2015-11-08 16:34:32.523900858 -0800
+@@ -135,6 +135,8 @@
  static gboolean terminal_screen_popup_menu (GtkWidget *widget);
  static gboolean terminal_screen_button_press (GtkWidget *widget,
                                                GdkEventButton *event);
@@ -9,7 +9,7 @@
  static gboolean terminal_screen_do_exec (TerminalScreen *screen,
                                           FDSetupData    *data,
                                           GError **error);
-@@ -509,6 +511,7 @@
+@@ -521,6 +523,7 @@
    widget_class->realize = terminal_screen_realize;
    widget_class->drag_data_received = terminal_screen_drag_data_received;
    widget_class->button_press_event = terminal_screen_button_press;
@@ -17,7 +17,7 @@
    widget_class->popup_menu = terminal_screen_popup_menu;
 
    terminal_class->child_exited = terminal_screen_child_exited;
-@@ -1594,8 +1597,7 @@
+@@ -1654,8 +1657,7 @@
            if (button_press_event && button_press_event (widget, event))
              return TRUE;
 
@@ -27,7 +27,7 @@
            return TRUE;
          }
        else if (!(event->state & (GDK_CONTROL_MASK | GDK_MOD1_MASK)))
-@@ -1614,6 +1616,34 @@
+@@ -1674,6 +1676,33 @@
    return FALSE;
  }
 
