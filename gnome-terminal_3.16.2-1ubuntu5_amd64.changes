@@ -1,0 +1,27 @@
+Format: 1.8
+Date: Sun, 08 Nov 2015 17:03:21 -0800
+Source: gnome-terminal
+Binary: gnome-terminal gnome-terminal-data
+Architecture: all amd64
+Version: 3.16.2-1ubuntu5
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Changed-By: James Newell <james@ubuntu-vm>
+Description:
+ gnome-terminal - GNOME terminal emulator application
+ gnome-terminal-data - Data files for the GNOME terminal emulator
+Changes:
+ gnome-terminal (3.16.2-1ubuntu5) UNRELEASED; urgency=medium
+ .
+   * Add support for right-click paste
+Checksums-Sha1:
+ e14530e3f6a5b5660e38148a49ab474eebc8b34b 1295274 gnome-terminal-data_3.16.2-1ubuntu5_all.deb
+ 7c98f7d381efedcf39fafbe9a0cc076de237bfd6 675858 gnome-terminal_3.16.2-1ubuntu5_amd64.deb
+Checksums-Sha256:
+ cec00746ddfbd2f1e3506992ec084b773c27c2672065e5ec12b684e39cab05b6 1295274 gnome-terminal-data_3.16.2-1ubuntu5_all.deb
+ 4452c36ec32efec22b90aea00aa1a06fe4d09de44c8a40e6ecdd23beb1740908 675858 gnome-terminal_3.16.2-1ubuntu5_amd64.deb
+Files:
+ 4ab19db73c1c16a9c99362f5bd36eb29 1295274 gnome optional gnome-terminal-data_3.16.2-1ubuntu5_all.deb
+ 34dfaa773ccdd4642539fa25569d2881 675858 gnome optional gnome-terminal_3.16.2-1ubuntu5_amd64.deb
+Original-Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
