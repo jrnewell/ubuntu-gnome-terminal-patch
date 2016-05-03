@@ -1,0 +1,27 @@
+Format: 1.8
+Date: Mon, 02 May 2016 20:03:21 -0800
+Source: gnome-terminal
+Binary: gnome-terminal gnome-terminal-data
+Architecture: all amd64
+Version: 3.18.3-1ubuntu2
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Changed-By: James Newell <james@ubuntu-vm>
+Description:
+ gnome-terminal - GNOME terminal emulator application
+ gnome-terminal-data - Data files for the GNOME terminal emulator
+Changes:
+ gnome-terminal (3.18.3-1ubuntu2) UNRELEASED; urgency=medium
+ .
+   * Add support for right-click paste
+Checksums-Sha1:
+ 4779a751c2632f93b46adc114e0c71e6cc8f3f29 1322858 gnome-terminal-data_3.18.3-1ubuntu2_all.deb
+ 505a2559e36cfb1f89817574e0cfcf0f606f40e7 687576 gnome-terminal_3.18.3-1ubuntu2_amd64.deb
+Checksums-Sha256:
+ a3fe2425478a0a3380837e5dd5a4c468b721fee65df59b4aa1b7cb1178dd8897 1322858 gnome-terminal-data_3.18.3-1ubuntu2_all.deb
+ 26760783d044494e45a8bef82809a4779c323ed41700f06e1672d3a6231cb8ca 687576 gnome-terminal_3.18.3-1ubuntu2_amd64.deb
+Files:
+ 0fa12ac68126acc095b1c6fa6804eff7 1322858 gnome optional gnome-terminal-data_3.18.3-1ubuntu2_all.deb
+ b23212929174bd6d5dca127b3ebc1a65 687576 gnome optional gnome-terminal_3.18.3-1ubuntu2_amd64.deb
+Original-Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>

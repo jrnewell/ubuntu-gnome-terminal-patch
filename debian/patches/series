@@ -6,7 +6,6 @@ Don-t-allow-the-theme-to-set-black-on-black.patch
 52_support_apturl.patch
 60_add_lp_handler.patch
 0001-Restore-transparency.patch
-0001-window-Make-the-drawing-robust-across-all-themes.patch
 gnome-shell_search_provider.patch
 Provide-fallback-for-reading-current-directory-if-OS.patch
 scrollbar-background-theming.patch
