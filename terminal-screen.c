@@ -19,6 +19,10 @@
 #include "config.h"
 #define _GNU_SOURCE /* for dup3 */
 
+#ifdef WITH_PCRE2
+#include "terminal-pcre2.h"
+#endif
+
 #include "terminal-regex.h"
 #include "terminal-screen.h"
 
@@ -72,7 +76,7 @@ typedef struct {
 typedef struct
 {
   int tag;
-  TerminalURLFlavour flavor;
+  TerminalURLFlavor flavor;
 } TagData;
 
 struct _TerminalScreenPrivate
@@ -123,6 +127,8 @@ enum
   TARGET_TAB
 };
 
+#define TERMINAL_SCREEN_STYLE_CLASS "terminal-screen"
+
 static void terminal_screen_constructed (GObject             *object);
 static void terminal_screen_dispose     (GObject             *object);
 static void terminal_screen_finalize    (GObject             *object);
@@ -142,8 +148,6 @@ static gboolean terminal_screen_button_press (GtkWidget *widget,
                                               GdkEventButton *event);
 static gboolean terminal_screen_button_release (GtkWidget *widget,
                                                 GdkEventButton *event);
-static void terminal_screen_hierarchy_changed (GtkWidget *widget,
-                                               GtkWidget *previous_toplevel);
 static gboolean terminal_screen_do_exec (TerminalScreen *screen,
                                          FDSetupData    *data,
                                          GError **error);
@@ -157,6 +161,9 @@ static void terminal_screen_icon_title_changed        (VteTerminal *vte_terminal
 
 static void update_color_scheme                      (TerminalScreen *screen);
 
+static void terminal_screen_check_extra (TerminalScreen *screen,
+                                         GdkEvent       *event,
+                                         char           **number_info);
 static char* terminal_screen_check_match       (TerminalScreen            *screen,
                                                 GdkEvent                  *event,
                                                 int                  *flavor);
@@ -169,7 +176,7 @@ static guint signals[LAST_SIGNAL];
 
 typedef struct {
   const char *pattern;
-  TerminalURLFlavour flavor;
+  TerminalURLFlavor flavor;
 } TerminalRegexPattern;
 
 static const TerminalRegexPattern url_regex_patterns[] = {
@@ -182,9 +189,21 @@ static const TerminalRegexPattern url_regex_patterns[] = {
   { REGEX_LP,        FLAVOR_LP },
 };
 
+static const TerminalRegexPattern extra_regex_patterns[] = {
+  { "(0[Xx][[:xdigit:]]+|[[:digit:]]+)", FLAVOR_NUMBER },
+};
+
+#ifdef WITH_PCRE2
+static VteRegex **url_regexes;
+static VteRegex **extra_regexes;
+#else
 static GRegex **url_regexes;
-static TerminalURLFlavour *url_regex_flavors;
+static GRegex **extra_regexes;
+#endif
+static TerminalURLFlavor *url_regex_flavors;
+static TerminalURLFlavor *extra_regex_flavors;
 static guint n_url_regexes;
+static guint n_extra_regexes;
 
 #ifdef F_DUPFD_CLOEXEC
 static inline int dup_cloexec(int fd, int hint)
@@ -279,6 +298,52 @@ static void
 free_tag_data (TagData *tagdata)
 {
   g_slice_free (TagData, tagdata);
+}
+
+static void
+precompile_regexes (const TerminalRegexPattern *regex_patterns,
+                    guint n_regexes,
+#ifdef WITH_PCRE2
+                    VteRegex ***regexes,
+#else
+                    GRegex ***regexes,
+#endif
+                    TerminalURLFlavor **regex_flavors)
+{
+  guint i;
+
+#ifdef WITH_PCRE2
+  *regexes = g_new0 (VteRegex*, n_regexes);
+#else
+  *regexes = g_new0 (GRegex*, n_regexes);
+#endif
+  *regex_flavors = g_new0 (TerminalURLFlavor, n_regexes);
+
+  for (i = 0; i < n_regexes; ++i)
+    {
+      GError *error = NULL;
+
+#ifdef WITH_PCRE2
+      (*regexes)[i] = vte_regex_new (regex_patterns[i].pattern, -1,
+                                     PCRE2_UTF | PCRE2_NO_UTF_CHECK | PCRE2_MULTILINE,
+                                     &error);
+      g_assert_no_error (error);
+
+      if (!vte_regex_jit ((*regexes)[i], PCRE2_JIT_COMPLETE, &error) ||
+          !vte_regex_jit ((*regexes)[i], PCRE2_JIT_PARTIAL_SOFT, &error)) {
+        g_printerr ("Failed to JIT regex '%s': %s\n", regex_patterns[i].pattern, error->message);
+        g_clear_error (&error);
+      }
+#else
+      (*regexes)[i] = g_regex_new (regex_patterns[i].pattern,
+                                   G_REGEX_OPTIMIZE |
+                                   G_REGEX_MULTILINE,
+                                   0, &error);
+      g_assert_no_error (error);
+#endif
+
+      (*regex_flavors)[i] = regex_patterns[i].flavor;
+    }
 }
 
 static void
@@ -384,8 +449,13 @@ terminal_screen_init (TerminalScreen *screen)
   guint i;
   uuid_t u;
   char uuidstr[37];
+  GtkStyleContext *context;
 
   priv = screen->priv = G_TYPE_INSTANCE_GET_PRIVATE (screen, TERMINAL_TYPE_SCREEN, TerminalScreenPrivate);
+
+  context = gtk_widget_get_style_context (GTK_WIDGET (screen));
+
+  gtk_style_context_add_class (context, TERMINAL_SCREEN_STYLE_CLASS);
 
   uuid_generate (u);
   uuid_unparse (u, uuidstr);
@@ -401,7 +471,11 @@ terminal_screen_init (TerminalScreen *screen)
 
       tag_data = g_slice_new (TagData);
       tag_data->flavor = url_regex_flavors[i];
+#ifdef WITH_PCRE2
+      tag_data->tag = vte_terminal_match_add_regex (terminal, url_regexes[i], 0);
+#else
       tag_data->tag = vte_terminal_match_add_gregex (terminal, url_regexes[i], 0);
+#endif
       vte_terminal_match_set_cursor_type (terminal, tag_data->tag, URL_MATCH_CURSOR);
 
       priv->match_tags = g_slist_prepend (priv->match_tags, tag_data);
@@ -517,7 +591,6 @@ terminal_screen_class_init (TerminalScreenClass *klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
   VteTerminalClass *terminal_class = VTE_TERMINAL_CLASS (klass);
   GSettings *settings;
-  guint i;
 
   object_class->constructed = terminal_screen_constructed;
   object_class->dispose = terminal_screen_dispose;
@@ -531,7 +604,6 @@ terminal_screen_class_init (TerminalScreenClass *klass)
   widget_class->button_press_event = terminal_screen_button_press;
   widget_class->button_release_event = terminal_screen_button_release;
   widget_class->popup_menu = terminal_screen_popup_menu;
-  widget_class->hierarchy_changed = terminal_screen_hierarchy_changed;
 
   terminal_class->child_exited = terminal_screen_child_exited;
 
@@ -544,7 +616,7 @@ terminal_screen_class_init (TerminalScreenClass *klass)
                   g_cclosure_marshal_VOID__OBJECT,
                   G_TYPE_NONE,
                   1, G_TYPE_SETTINGS);
-
+  
   signals[SHOW_POPUP_MENU] =
     g_signal_new (I_("show-popup-menu"),
                   G_OBJECT_CLASS_TYPE (object_class),
@@ -565,7 +637,7 @@ terminal_screen_class_init (TerminalScreenClass *klass)
                   _terminal_marshal_BOOLEAN__STRING_INT_UINT,
                   G_TYPE_BOOLEAN,
                   3, G_TYPE_STRING, G_TYPE_INT, G_TYPE_UINT);
-
+  
   signals[CLOSE_SCREEN] =
     g_signal_new (I_("close-screen"),
                   G_OBJECT_CLASS_TYPE (object_class),
@@ -631,22 +703,11 @@ terminal_screen_class_init (TerminalScreenClass *klass)
      g_param_spec_float ("background-darkness", NULL, NULL, -1, 1, -1,
                          G_PARAM_READABLE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 
-  /* Precompile the regexes */
+
   n_url_regexes = G_N_ELEMENTS (url_regex_patterns);
-  url_regexes = g_new0 (GRegex*, n_url_regexes);
-  url_regex_flavors = g_new0 (TerminalURLFlavour, n_url_regexes);
-
-  for (i = 0; i < n_url_regexes; ++i)
-    {
-      GError *error = NULL;
-
-      url_regexes[i] = g_regex_new (url_regex_patterns[i].pattern,
-                                    G_REGEX_OPTIMIZE,
-                                    0, &error);
-      g_assert_no_error (error);
-
-      url_regex_flavors[i] = url_regex_patterns[i].flavor;
-    }
+  precompile_regexes (url_regex_patterns, n_url_regexes, &url_regexes, &url_regex_flavors);
+  n_extra_regexes = G_N_ELEMENTS (extra_regex_patterns);
+  precompile_regexes (extra_regex_patterns, n_extra_regexes, &extra_regexes, &extra_regex_flavors);
 
   /* This fixes bug #329827 */
   settings = terminal_app_get_global_settings (terminal_app_get ());
@@ -718,7 +779,9 @@ terminal_screen_finalize (GObject *object)
 
 TerminalScreen *
 terminal_screen_new (GSettings       *profile,
+                     const char      *encoding,
                      char           **override_command,
+                     const char      *title,
                      const char      *working_dir,
                      char           **child_env,
                      double           zoom)
@@ -732,9 +795,46 @@ terminal_screen_new (GSettings       *profile,
   priv = screen->priv;
 
   terminal_screen_set_profile (screen, profile);
+
+  /* If we got an encoding together with an override command,
+   * override the profile encoding; otherwise use the profile
+   * encoding.
+   */
+  if (encoding != NULL && override_command != NULL) {
+    TerminalEncoding *enc;
+
+    enc = terminal_app_ensure_encoding (terminal_app_get (), encoding);
+    vte_terminal_set_encoding (VTE_TERMINAL (screen),
+                               terminal_encoding_get_charset (enc),
+                               NULL);
+  }
+
   vte_terminal_set_size (VTE_TERMINAL (screen),
                          g_settings_get_int (profile, TERMINAL_PROFILE_DEFAULT_SIZE_COLUMNS_KEY),
                          g_settings_get_int (profile, TERMINAL_PROFILE_DEFAULT_SIZE_ROWS_KEY));
+
+  /* If given an initial title, strip it of control characters and
+   * feed it to the terminal.
+   */
+  if (title != NULL) {
+    GString *seq;
+    const char *p;
+
+    seq = g_string_new ("\033]0;");
+    for (p = title; *p; p = g_utf8_next_char (p)) {
+      gunichar c = g_utf8_get_char (p);
+      if (c < 0x20 || (c >= 0x7f && c <= 0x9f))
+        continue;
+      else if (c == ';')
+        break;
+
+      g_string_append_unichar (seq, c);
+    }
+    g_string_append (seq, "\033\\");
+
+    vte_terminal_feed (VTE_TERMINAL (screen), seq->str, seq->len);
+    g_string_free (seq, TRUE);
+  }
 
   priv->initial_working_directory = g_strdup (working_dir);
 
@@ -752,7 +852,7 @@ terminal_screen_new (GSettings       *profile,
   return screen;
 }
 
-gboolean
+gboolean 
 terminal_screen_exec (TerminalScreen *screen,
                       char          **argv,
                       char          **envv,
@@ -878,6 +978,12 @@ terminal_screen_profile_changed_cb (GSettings     *profile,
       prop_name == I_(TERMINAL_PROFILE_BACKGROUND_COLOR_KEY) ||
       prop_name == I_(TERMINAL_PROFILE_BOLD_COLOR_SAME_AS_FG_KEY) ||
       prop_name == I_(TERMINAL_PROFILE_BOLD_COLOR_KEY) ||
+      prop_name == I_(TERMINAL_PROFILE_CURSOR_COLORS_SET_KEY) ||
+      prop_name == I_(TERMINAL_PROFILE_CURSOR_BACKGROUND_COLOR_KEY) ||
+      prop_name == I_(TERMINAL_PROFILE_CURSOR_FOREGROUND_COLOR_KEY) ||
+      prop_name == I_(TERMINAL_PROFILE_HIGHLIGHT_COLORS_SET_KEY) ||
+      prop_name == I_(TERMINAL_PROFILE_HIGHLIGHT_BACKGROUND_COLOR_KEY) ||
+      prop_name == I_(TERMINAL_PROFILE_HIGHLIGHT_FOREGROUND_COLOR_KEY) ||
       prop_name == I_(TERMINAL_PROFILE_PALETTE_KEY) ||
       prop_name == I_(TERMINAL_PROFILE_USE_TRANSPARENT_BACKGROUND) ||
       prop_name == I_(TERMINAL_PROFILE_BACKGROUND_TRANSPARENCY_PERCENT) ||
@@ -905,7 +1011,7 @@ terminal_screen_profile_changed_cb (GSettings     *profile,
   if (!prop_name || prop_name == I_(TERMINAL_PROFILE_BACKSPACE_BINDING_KEY))
   vte_terminal_set_backspace_binding (vte_terminal,
                                       g_settings_get_enum (profile, TERMINAL_PROFILE_BACKSPACE_BINDING_KEY));
-
+  
   if (!prop_name || prop_name == I_(TERMINAL_PROFILE_DELETE_BINDING_KEY))
   vte_terminal_set_delete_binding (vte_terminal,
                                    g_settings_get_enum (profile, TERMINAL_PROFILE_DELETE_BINDING_KEY));
@@ -937,32 +1043,6 @@ terminal_screen_profile_changed_cb (GSettings     *profile,
 }
 
 static void
-update_toplevel_transparency (TerminalScreen *screen)
-{
-  GtkWidget *widget = GTK_WIDGET (screen);
-  TerminalScreenPrivate *priv = screen->priv;
-  GSettings *profile = priv->profile;
-  GtkWidget *toplevel;
-
-  toplevel = gtk_widget_get_toplevel (widget);
-  if (toplevel != NULL && gtk_widget_is_toplevel (toplevel))
-    {
-      gboolean transparent;
-
-      transparent = g_settings_get_boolean (profile, TERMINAL_PROFILE_USE_TRANSPARENT_BACKGROUND);
-      if (gtk_widget_get_app_paintable (toplevel) != transparent)
-        {
-          gtk_widget_set_app_paintable (toplevel, transparent);
-
-          /* The opaque region of the toplevel isn't updated until the toplevel is allocated;
-           * set_app_paintable() doesn't force an allocation, so do that manually.
-           */
-          gtk_widget_queue_resize (toplevel);
-        }
-    }
-}
-
-static void
 update_color_scheme (TerminalScreen *screen)
 {
   GtkWidget *widget = GTK_WIDGET (screen);
@@ -971,8 +1051,13 @@ update_color_scheme (TerminalScreen *screen)
   gs_free GdkRGBA *colors;
   gsize n_colors;
   GdkRGBA fg, bg, bold, theme_fg, theme_bg;
+  GdkRGBA cursor_bg, cursor_fg;
+  GdkRGBA highlight_bg, highlight_fg;
   GdkRGBA *boldp;
+  GdkRGBA *cursor_bgp = NULL, *cursor_fgp = NULL;
+  GdkRGBA *highlight_bgp = NULL, *highlight_fgp = NULL;
   GtkStyleContext *context;
+  gboolean use_theme_colors;
   GtkWidget *toplevel;
   gboolean transparent, theme_transparent;
   gfloat style_darkness;
@@ -992,7 +1077,8 @@ update_color_scheme (TerminalScreen *screen)
       theme_bg.blue = 1.0;
     }
 
-  if (g_settings_get_boolean (profile, TERMINAL_PROFILE_USE_THEME_COLORS_KEY) ||
+  use_theme_colors = g_settings_get_boolean (profile, TERMINAL_PROFILE_USE_THEME_COLORS_KEY);
+  if (use_theme_colors ||
       (!terminal_g_settings_get_rgba (profile, TERMINAL_PROFILE_FOREGROUND_COLOR_KEY, &fg) ||
        !terminal_g_settings_get_rgba (profile, TERMINAL_PROFILE_BACKGROUND_COLOR_KEY, &bg)))
     {
@@ -1001,10 +1087,29 @@ update_color_scheme (TerminalScreen *screen)
     }
 
   if (!g_settings_get_boolean (profile, TERMINAL_PROFILE_BOLD_COLOR_SAME_AS_FG_KEY) &&
+      !use_theme_colors &&
       terminal_g_settings_get_rgba (profile, TERMINAL_PROFILE_BOLD_COLOR_KEY, &bold))
     boldp = &bold;
   else
     boldp = NULL;
+
+  if (g_settings_get_boolean (profile, TERMINAL_PROFILE_CURSOR_COLORS_SET_KEY) &&
+      !use_theme_colors)
+    {
+      if (terminal_g_settings_get_rgba (profile, TERMINAL_PROFILE_CURSOR_BACKGROUND_COLOR_KEY, &cursor_bg))
+        cursor_bgp = &cursor_bg;
+      if (terminal_g_settings_get_rgba (profile, TERMINAL_PROFILE_CURSOR_FOREGROUND_COLOR_KEY, &cursor_fg))
+        cursor_fgp = &cursor_fg;
+    }
+
+  if (g_settings_get_boolean (profile, TERMINAL_PROFILE_HIGHLIGHT_COLORS_SET_KEY) &&
+      !use_theme_colors)
+    {
+      if (terminal_g_settings_get_rgba (profile, TERMINAL_PROFILE_HIGHLIGHT_BACKGROUND_COLOR_KEY, &highlight_bg))
+        highlight_bgp = &highlight_bg;
+      if (terminal_g_settings_get_rgba (profile, TERMINAL_PROFILE_HIGHLIGHT_FOREGROUND_COLOR_KEY, &highlight_fg))
+        highlight_fgp = &highlight_fg;
+    }
 
   colors = terminal_g_settings_get_rgba_palette (priv->profile, TERMINAL_PROFILE_PALETTE_KEY, &n_colors);
   theme_transparent = g_settings_get_boolean (profile, TERMINAL_PROFILE_USE_THEME_TRANSPARENCY);
@@ -1028,9 +1133,17 @@ update_color_scheme (TerminalScreen *screen)
   else
       bg.alpha = 1.0;
 
+  /* If this gets out of range, let's not crash */
+  if (bg.alpha < 0.0 || bg.alpha > 1.0)
+      bg.alpha = 1.0;
+
   vte_terminal_set_colors (VTE_TERMINAL (screen), &fg, &bg,
                            colors, n_colors);
   vte_terminal_set_color_bold (VTE_TERMINAL (screen), boldp);
+  vte_terminal_set_color_cursor (VTE_TERMINAL (screen), cursor_bgp);
+  vte_terminal_set_color_cursor_foreground (VTE_TERMINAL (screen), cursor_fgp);
+  vte_terminal_set_color_highlight (VTE_TERMINAL (screen), highlight_bgp);
+  vte_terminal_set_color_highlight_foreground (VTE_TERMINAL (screen), highlight_fgp);
 
   if (gdk_rgba_hash (&priv->bg_color) != gdk_rgba_hash (&bg))
     {
@@ -1044,8 +1157,9 @@ update_color_scheme (TerminalScreen *screen)
       g_object_notify (G_OBJECT (screen), "fg-color");
     }
 
-  update_toplevel_transparency (screen);
-
+  toplevel = gtk_widget_get_toplevel (GTK_WIDGET (screen));
+  if (toplevel != NULL && gtk_widget_is_toplevel (toplevel))
+    gtk_widget_set_app_paintable (toplevel, transparent);
 }
 
 static void
@@ -1299,7 +1413,7 @@ get_child_environment (TerminalScreen *screen,
   g_hash_table_remove (env_table, "COLUMNS");
   g_hash_table_remove (env_table, "LINES");
   g_hash_table_remove (env_table, "GNOME_DESKTOP_ICON");
-
+ 
 #ifdef GDK_WINDOWING_X11
   if (GDK_IS_X11_SCREEN (gtk_widget_get_screen (window)))
     {
@@ -1495,7 +1609,7 @@ terminal_screen_do_exec (TerminalScreen *screen,
                                 argv,
                                 env,
                                 spawn_flags,
-                                (GSpawnChildSetupFunc) (data ? terminal_screen_child_setup : NULL),
+                                (GSpawnChildSetupFunc) (data ? terminal_screen_child_setup : NULL), 
                                 data,
                                 &pid,
                                 NULL /* cancellable */,
@@ -1592,7 +1706,8 @@ terminal_screen_popup_info_unref (TerminalScreenPopupInfo *info)
 
   g_object_unref (info->screen);
   g_weak_ref_clear (&info->window_weak_ref);
-  g_free (info->string);
+  g_free (info->url);
+  g_free (info->number_info);
   g_slice_free (TerminalScreenPopupInfo, info);
 }
 
@@ -1629,8 +1744,9 @@ terminal_screen_popup_menu (GtkWidget *widget)
 static void
 terminal_screen_do_popup (TerminalScreen *screen,
                           GdkEventButton *event,
-                          char *matched_string,
-                          int matched_flavor)
+                          char *url,
+                          int url_flavor,
+                          char *number_info)
 {
   TerminalScreenPopupInfo *info;
 
@@ -1638,18 +1754,12 @@ terminal_screen_do_popup (TerminalScreen *screen,
   info->button = event->button;
   info->state = event->state & gtk_accelerator_get_default_mod_mask ();
   info->timestamp = event->time;
-  info->string = matched_string; /* adopted */
-  info->flavour = matched_flavor;
+  info->url = url; /* adopted */
+  info->url_flavor = url_flavor;
+  info->number_info = number_info; /* adopted */
 
   g_signal_emit (screen, signals[SHOW_POPUP_MENU], 0, info);
   terminal_screen_popup_info_unref (info);
-}
-
-static void
-terminal_screen_hierarchy_changed (GtkWidget *widget,
-                                   GtkWidget *previous_toplevel)
-{
-  update_toplevel_transparency (TERMINAL_SCREEN (widget));
 }
 
 static gboolean
@@ -1659,23 +1769,25 @@ terminal_screen_button_press (GtkWidget      *widget,
   TerminalScreen *screen = TERMINAL_SCREEN (widget);
   gboolean (* button_press_event) (GtkWidget*, GdkEventButton*) =
     GTK_WIDGET_CLASS (terminal_screen_parent_class)->button_press_event;
-  gs_free char *matched_string = NULL;
-  int matched_flavor = 0;
+  gs_free char *url = NULL;
+  int url_flavor = 0;
+  gs_free char *number_info = NULL;
   guint state;
 
   state = event->state & gtk_accelerator_get_default_mod_mask ();
 
-  matched_string = terminal_screen_check_match (screen, (GdkEvent*)event, &matched_flavor);
+  url = terminal_screen_check_match (screen, (GdkEvent*)event, &url_flavor);
+  terminal_screen_check_extra (screen, (GdkEvent*)event, &number_info);
 
-  if (matched_string != NULL &&
+  if (url != NULL &&
       (event->button == 1 || event->button == 2) &&
       (state & GDK_CONTROL_MASK))
     {
       gboolean handled = FALSE;
 
       g_signal_emit (screen, signals[MATCH_CLICKED], 0,
-                     matched_string,
-                     matched_flavor,
+                     url,
+                     url_flavor,
                      state,
                      &handled);
       if (handled)
@@ -1697,8 +1809,9 @@ terminal_screen_button_press (GtkWidget      *widget,
       else if (!(event->state & (GDK_CONTROL_MASK | GDK_MOD1_MASK)))
         {
           /* do popup on shift+right-click */
-          terminal_screen_do_popup (screen, event, matched_string, matched_flavor);
-          matched_string = NULL; /* adopted to the popup info */
+          terminal_screen_do_popup (screen, event, url, url_flavor, number_info);
+          url = NULL; /* adopted to the popup info */
+          number_info = NULL; /* detto */
           return TRUE;
         }
     }
@@ -1744,7 +1857,7 @@ terminal_screen_button_release (GtkWidget      *widget,
  * Tries to determine the current working directory of the foreground process
  * in @screen's PTY, falling back to the current working directory of the
  * primary child.
- *
+ * 
  * Returns: a newly allocated string containing the current working directory,
  *   or %NULL on failure
  */
@@ -1802,9 +1915,9 @@ terminal_screen_child_exited (VteTerminal *terminal,
                          screen);
 
   priv->child_pid = -1;
-
+  
   action = g_settings_get_enum (priv->profile, TERMINAL_PROFILE_EXIT_ACTION_KEY);
-
+  
   switch (action)
     {
     case TERMINAL_EXIT_CLOSE:
@@ -1876,8 +1989,8 @@ terminal_screen_drag_data_received (GtkWidget        *widget,
       {
         GdkAtom atom = GDK_POINTER_TO_ATOM (tmp->data);
 
-        g_print ("Target: %s\n", gdk_atom_name (atom));
-
+        g_print ("Target: %s\n", gdk_atom_name (atom));        
+        
         tmp = tmp->next;
       }
 
@@ -1940,7 +2053,7 @@ terminal_screen_drag_data_received (GtkWidget        *widget,
         char *utf8_data, *newline, *text;
         char *uris[2];
         gsize len;
-
+        
         /* MOZ_URL is in UCS-2 but in format 8. BROKEN!
          *
          * The data contains the URL, a \n, then the
@@ -1977,7 +2090,7 @@ terminal_screen_drag_data_received (GtkWidget        *widget,
         char *utf8_data, *newline, *text;
         char *uris[2];
         gsize len;
-
+        
         /* The data contains the URL, a \n, then the
          * title of the web page.
          */
@@ -2097,6 +2210,54 @@ terminal_screen_check_match (TerminalScreen *screen,
   return NULL;
 }
 
+static void
+terminal_screen_check_extra (TerminalScreen *screen,
+                             GdkEvent       *event,
+                             char           **number_info)
+{
+  guint i;
+  char **matches;
+  gboolean flavor_number_found = FALSE;
+
+  matches = g_newa (char *, n_extra_regexes);
+  memset(matches, 0, sizeof(char*) * n_extra_regexes);
+
+  if (
+#ifdef WITH_PCRE2
+      vte_terminal_event_check_regex_simple(
+#else
+      vte_terminal_event_check_gregex_simple(
+#endif
+                                             VTE_TERMINAL (screen),
+                                             event,
+                                             extra_regexes,
+                                             n_extra_regexes,
+                                             0,
+                                             matches))
+    {
+      for (i = 0; i < n_extra_regexes; i++)
+        {
+          if (matches[i] != NULL)
+            {
+              /* Store the first match for each flavor, free all the others */
+              switch (extra_regex_flavors[i])
+                {
+                case FLAVOR_NUMBER:
+                  if (!flavor_number_found)
+                    {
+                      *number_info = terminal_util_number_info (matches[i]);
+                      flavor_number_found = TRUE;
+                    }
+                  g_free (matches[i]);
+                  break;
+                default:
+                  g_free (matches[i]);
+                }
+            }
+        }
+    }
+}
+
 /**
  * terminal_screen_has_foreground_process:
  * @screen:
@@ -2105,7 +2266,7 @@ terminal_screen_check_match (TerminalScreen *screen,
  *
  * Checks whether there's a foreground process running in
  * this terminal.
- *
+ * 
  * Returns: %TRUE iff there's a foreground process running in @screen
  */
 gboolean

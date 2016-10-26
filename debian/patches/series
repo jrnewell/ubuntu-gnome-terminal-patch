@@ -6,7 +6,10 @@ Don-t-allow-the-theme-to-set-black-on-black.patch
 52_support_apturl.patch
 60_add_lp_handler.patch
 0001-Restore-transparency.patch
-gnome-shell_search_provider.patch
 Provide-fallback-for-reading-current-directory-if-OS.patch
+Fix-chunked-resize-and-geometry-option.patch
+Replace-no-op-gtk_window_resize_to_geometry-by-calcu.patch
 scrollbar-background-theming.patch
+0001-Add-style-classes-and-CSS-names-to-some-of-our-widge.patch
+git_allow-inspector-without-debug.patch
 62_right_click_paste.patch
