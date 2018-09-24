@@ -1,0 +1,22 @@
+From: Didier Roche <didrocks@ubuntu.com>
+Date: Sat, 20 Jan 2018 18:48:39 -0500
+Subject: Add Unity static quicklist support to gnome-terminal
+
+Forwarded: https://bugzilla.gnome.org/show_bug.cgi?id=651531
+---
+ org.gnome.Terminal.desktop.in.in | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/org.gnome.Terminal.desktop.in.in b/org.gnome.Terminal.desktop.in.in
+index 5904afa..1b739bd 100644
+--- a/org.gnome.Terminal.desktop.in.in
++++ b/org.gnome.Terminal.desktop.in.in
+@@ -15,3 +15,8 @@ Categories=GNOME;GTK;System;TerminalEmulator;
+ StartupNotify=true
+ X-GNOME-SingleWindow=false
+ OnlyShowIn=GNOME;Unity;
++Actions=new-window
++
++[Desktop Action new-window]
++_Name=New Terminal
++Exec=gnome-terminal

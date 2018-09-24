@@ -1,0 +1,129 @@
+From: Marc Deslauriers <marc.deslauriers@canonical.com>
+Date: Sat, 20 Jan 2018 18:54:33 -0500
+Subject: add a handler for launchpad bug URLs.
+
+Forwarded: yes, https://bugzilla.gnome.org/show_bug.cgi?id=709087
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/gnome-terminal/+bug/1232589
+---
+ src/terminal-regex.h  |  1 +
+ src/terminal-screen.c |  1 +
+ src/terminal-screen.h |  1 +
+ src/terminal-util.c   | 17 +++++++++++++++++
+ src/terminal-util.h   |  2 ++
+ src/terminal-window.c | 13 ++++++++++++-
+ 6 files changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/src/terminal-regex.h b/src/terminal-regex.h
+index 83ad417..f0ee427 100644
+--- a/src/terminal-regex.h
++++ b/src/terminal-regex.h
+@@ -150,5 +150,6 @@
+ #define REGEX_URL_VOIP   DEFS "(?i:h323:|sips?:)" USERPASS URL_HOST PORT VOIP_PATH
+ #define REGEX_EMAIL      DEFS "(?i:mailto:)?" USER "@" EMAIL_HOST
+ #define REGEX_NEWS_MAN   "(?i:news:|man:|info:|apt:)[-[:alnum:]\\Q^_{|}~!\"#$%&'()*+,./;:=?`\\E]+"
++#define REGEX_LP         "(?i:lp: #)[[:digit:]]+"
+ 
+ #endif /* !TERMINAL_REGEX_H */
+diff --git a/src/terminal-screen.c b/src/terminal-screen.c
+index b5ae0da..9d9bc83 100644
+--- a/src/terminal-screen.c
++++ b/src/terminal-screen.c
+@@ -185,6 +185,7 @@ static const TerminalRegexPattern url_regex_patterns[] = {
+   { REGEX_URL_VOIP,  FLAVOR_VOIP_CALL },
+   { REGEX_EMAIL,     FLAVOR_EMAIL },
+   { REGEX_NEWS_MAN,  FLAVOR_AS_IS },
++  { REGEX_LP,        FLAVOR_LP },
+ };
+ 
+ static const TerminalRegexPattern extra_regex_patterns[] = {
+diff --git a/src/terminal-screen.h b/src/terminal-screen.h
+index 743071d..ff19f7e 100644
+--- a/src/terminal-screen.h
++++ b/src/terminal-screen.h
+@@ -32,6 +32,7 @@ typedef enum {
+   FLAVOR_VOIP_CALL,
+   FLAVOR_EMAIL,
+   FLAVOR_NUMBER,
++  FLAVOR_LP
+ } TerminalURLFlavor;
+ 
+ /* Forward decls */
+diff --git a/src/terminal-util.c b/src/terminal-util.c
+index 30cc136..ea3e39d 100644
+--- a/src/terminal-util.c
++++ b/src/terminal-util.c
+@@ -310,6 +310,9 @@ terminal_util_open_url (GtkWidget *parent,
+     case FLAVOR_AS_IS:
+       uri = g_strdup (orig_url);
+       break;
++    case FLAVOR_LP:
++      uri = terminal_util_get_lp_url (orig_url);
++      break;
+     default:
+       uri = NULL;
+       g_assert_not_reached ();
+@@ -323,6 +326,20 @@ terminal_util_open_url (GtkWidget *parent,
+     }
+ }
+ 
++char *
++terminal_util_get_lp_url (const char *orig_url)
++{
++  char *uri;
++  const char *bugnum = orig_url;
++
++  while (*bugnum && ! g_ascii_isdigit (*bugnum))
++      bugnum++;
++
++  uri = g_strdup_printf ("https://bugs.launchpad.net/bugs/%s", bugnum);
++
++  return uri;
++}
++
+ /**
+  * terminal_util_transform_uris_to_quoted_fuse_paths:
+  * @uris:
+diff --git a/src/terminal-util.h b/src/terminal-util.h
+index abd34fd..a7de59f 100644
+--- a/src/terminal-util.h
++++ b/src/terminal-util.h
+@@ -44,6 +44,8 @@ void terminal_util_open_url (GtkWidget *parent,
+                              TerminalURLFlavor flavor,
+                              guint32 user_time);
+ 
++char *terminal_util_get_lp_url (const char *orig_url);
++
+ void terminal_util_transform_uris_to_quoted_fuse_paths (char **uris);
+ 
+ char *terminal_util_concat_uris (char **uris,
+diff --git a/src/terminal-window.c b/src/terminal-window.c
+index a9de5d5..6470347 100644
+--- a/src/terminal-window.c
++++ b/src/terminal-window.c
+@@ -1020,7 +1020,17 @@ action_copy_match_cb (GSimpleAction *action,
+   if (info->url == NULL)
+     return;
+ 
+-  gtk_clipboard_set_text (priv->clipboard, info->url, -1);
++  if (info->url_flavor == FLAVOR_LP)
++    {
++      char *uri;
++      uri = terminal_util_get_lp_url (info->url);
++      gtk_clipboard_set_text (priv->clipboard, uri, -1);
++      g_free (uri);
++    }
++  else
++    {
++      gtk_clipboard_set_text (priv->clipboard, info->url, -1);
++    }
+ }
+ 
+ static void
+@@ -1785,6 +1795,7 @@ screen_show_popup_menu_cb (TerminalScreen *screen,
+       break;
+     case FLAVOR_AS_IS:
+     case FLAVOR_DEFAULT_TO_HTTP:
++    case FLAVOR_LP:
+     default:
+       open_label = _("_Open Link");
+       copy_label = _("Copy _Link");

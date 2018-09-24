@@ -1,0 +1,43 @@
+From: Jeremy Bicha <jbicha@ubuntu.com>
+Date: Tue, 6 Mar 2018 10:25:59 -0500
+Subject: fix invalid AppStream metadata
+
+The GNOME Software app won't use this metadata if it
+doesn't recognize the metadata_license
+
+https://bugzilla.gnome.org/show_bug.cgi?id=779434
+https://github.com/hughsie/appstream-glib/issues/225
+https://github.com/hughsie/appstream-glib/issues/226
+---
+ org.gnome.Terminal.Nautilus.metainfo.xml.in | 3 ++-
+ org.gnome.Terminal.appdata.xml.in           | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/org.gnome.Terminal.Nautilus.metainfo.xml.in b/org.gnome.Terminal.Nautilus.metainfo.xml.in
+index f9b1706..9458a0c 100644
+--- a/org.gnome.Terminal.Nautilus.metainfo.xml.in
++++ b/org.gnome.Terminal.Nautilus.metainfo.xml.in
+@@ -34,7 +34,8 @@
+   type="addon">
+   <id>org.gnome.Terminal.Nautilus</id>
+   <extends>org.gnome.Nautilus.desktop</extends>
+-  <metadata_license>GPL-3.0+ or GFDL-1.3-only</metadata_license>
++  <metadata_license>GFDL-1.3</metadata_license>
++  <!--Metadata is also licensed as GPL-3.0+-->
+   <project_license>GPL-3.0+</project_license>
+   <_name>Terminal plugin for Files</_name>
+   <_summary>Open a terminal from Files</_summary>
+diff --git a/org.gnome.Terminal.appdata.xml.in b/org.gnome.Terminal.appdata.xml.in
+index 8078051..bc07c63 100644
+--- a/org.gnome.Terminal.appdata.xml.in
++++ b/org.gnome.Terminal.appdata.xml.in
+@@ -33,7 +33,8 @@
+   xmlns:its="http://www.w3.org/2005/11/its"
+   type="desktop-application">
+   <id>org.gnome.Terminal.desktop</id>
+-  <metadata_license>GPL-3.0+ or GFDL-1.3-only</metadata_license>
++  <metadata_license>GFDL-1.3</metadata_license>
++  <!--Metadata is also licensed as GPL-3.0+-->
+   <project_license>GPL-3.0+</project_license>
+   <_name>Terminal</_name>
+   <_summary>Use the command line</_summary>
