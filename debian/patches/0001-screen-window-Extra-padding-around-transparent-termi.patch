@@ -1,0 +1,122 @@
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Fri, 13 Nov 2015 15:16:42 +0100
+Subject: [PATCH] screen,
+ window: Extra padding around transparent terminals in Wayland
+
+https://bugzilla.redhat.com/show_bug.cgi?id=1207943
+---
+ src/terminal-screen.c | 40 +++++++++++++++++++++++++++++++++++++---
+ src/terminal-window.c | 18 ++++++++++++------
+ 2 files changed, 49 insertions(+), 9 deletions(-)
+
+diff --git a/src/terminal-screen.c b/src/terminal-screen.c
+index c36f3d9..b5ae0da 100644
+--- a/src/terminal-screen.c
++++ b/src/terminal-screen.c
+@@ -143,6 +143,8 @@ static void terminal_screen_system_font_changed_cb (GSettings *,
+ static gboolean terminal_screen_popup_menu (GtkWidget *widget);
+ static gboolean terminal_screen_button_press (GtkWidget *widget,
+                                               GdkEventButton *event);
++static void terminal_screen_hierarchy_changed (GtkWidget *widget,
++                                               GtkWidget *previous_toplevel);
+ static gboolean terminal_screen_do_exec (TerminalScreen *screen,
+                                          FDSetupData    *data,
+                                          GError **error);
+@@ -568,6 +570,7 @@ terminal_screen_class_init (TerminalScreenClass *klass)
+   widget_class->drag_data_received = terminal_screen_drag_data_received;
+   widget_class->button_press_event = terminal_screen_button_press;
+   widget_class->popup_menu = terminal_screen_popup_menu;
++  widget_class->hierarchy_changed = terminal_screen_hierarchy_changed;
+ 
+   terminal_class->child_exited = terminal_screen_child_exited;
+ 
+@@ -980,6 +983,32 @@ terminal_screen_profile_changed_cb (GSettings     *profile,
+   g_object_thaw_notify (object);
+ }
+ 
++static void
++update_toplevel_transparency (TerminalScreen *screen)
++{
++  GtkWidget *widget = GTK_WIDGET (screen);
++  TerminalScreenPrivate *priv = screen->priv;
++  GSettings *profile = priv->profile;
++  GtkWidget *toplevel;
++
++  toplevel = gtk_widget_get_toplevel (widget);
++  if (toplevel != NULL && gtk_widget_is_toplevel (toplevel))
++    {
++      gboolean transparent;
++
++      transparent = g_settings_get_boolean (profile, TERMINAL_PROFILE_USE_TRANSPARENT_BACKGROUND);
++      if (gtk_widget_get_app_paintable (toplevel) != transparent)
++        {
++          gtk_widget_set_app_paintable (toplevel, transparent);
++
++          /* The opaque region of the toplevel isn't updated until the toplevel is allocated;
++           * set_app_paintable() doesn't force an allocation, so do that manually.
++           */
++          gtk_widget_queue_resize (toplevel);
++        }
++    }
++}
++
+ static void
+ update_color_scheme (TerminalScreen *screen)
+ {
+@@ -1083,9 +1112,7 @@ update_color_scheme (TerminalScreen *screen)
+   vte_terminal_set_color_highlight (VTE_TERMINAL (screen), highlight_bgp);
+   vte_terminal_set_color_highlight_foreground (VTE_TERMINAL (screen), highlight_fgp);
+ 
+-  toplevel = gtk_widget_get_toplevel (GTK_WIDGET (screen));
+-  if (toplevel != NULL && gtk_widget_is_toplevel (toplevel))
+-    gtk_widget_set_app_paintable (toplevel, transparent);
++  update_toplevel_transparency (screen);
+ }
+ 
+ static void
+@@ -1690,6 +1717,13 @@ terminal_screen_do_popup (TerminalScreen *screen,
+   terminal_screen_popup_info_unref (info);
+ }
+ 
++static void
++terminal_screen_hierarchy_changed (GtkWidget *widget,
++                                   GtkWidget *previous_toplevel)
++{
++  update_toplevel_transparency (TERMINAL_SCREEN (widget));
++}
++
+ static gboolean
+ terminal_screen_button_press (GtkWidget      *widget,
+                               GdkEventButton *event)
+diff --git a/src/terminal-window.c b/src/terminal-window.c
+index 3caccb6..a9de5d5 100644
+--- a/src/terminal-window.c
++++ b/src/terminal-window.c
+@@ -2019,15 +2019,21 @@ terminal_window_draw (GtkWidget *widget,
+ {
+   if (gtk_widget_get_app_paintable (widget))
+     {
++      GtkAllocation child_allocation;
+       GtkStyleContext *context;
+-      int width;
+-      int height;
++      GtkWidget *child;
++
++      /* Get the *child* allocation, so we don't overwrite window borders */
++      child = gtk_bin_get_child (GTK_BIN (widget));
++      gtk_widget_get_allocation (child, &child_allocation);
+ 
+       context = gtk_widget_get_style_context (widget);
+-      width = gtk_widget_get_allocated_width (widget);
+-      height = gtk_widget_get_allocated_height (widget);
+-      gtk_render_background (context, cr, 0, 0, width, height);
+-      gtk_render_frame (context, cr, 0, 0, width, height);
++      gtk_render_background (context, cr,
++                             child_allocation.x, child_allocation.y,
++                             child_allocation.width, child_allocation.height);
++      gtk_render_frame (context, cr,
++                        child_allocation.x, child_allocation.y,
++                        child_allocation.width, child_allocation.height);
+     }
+ 
+   return GTK_WIDGET_CLASS (terminal_window_parent_class)->draw (widget, cr);

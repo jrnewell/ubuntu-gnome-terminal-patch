@@ -1,0 +1,41 @@
+Format: 1.8
+Date: Wed, 30 May 2018 14:03:45 +0100
+Source: gnome-terminal
+Binary: gnome-terminal gnome-terminal-data nautilus-extension-gnome-terminal
+Architecture: all amd64
+Version: 3.28.2-1ubuntu1~18.04.1
+Distribution: bionic
+Urgency: medium
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Changed-By: Iain Lane <laney@debian.org>
+Description:
+ gnome-terminal - GNOME terminal emulator application
+ gnome-terminal-data - Data files for the GNOME terminal emulator
+ nautilus-extension-gnome-terminal - GNOME terminal emulator application
+Changes:
+ gnome-terminal (3.28.2-1ubuntu1~18.04.1) bionic; urgency=medium
+ .
+   * debian/{gbp.conf,control{,.in}}: Update for Ubuntu bionic
+   * Backport from cosmic to bionic.
+Checksums-Sha1:
+ 266b0328235655adf1db2d98bfba2c10ead92a51 945764 gnome-terminal-data_3.28.2-1ubuntu1~18.04.1_all.deb
+ adf09ebab746eb650d9d9956cb1db46c4d3ca26d 531660 gnome-terminal-dbgsym_3.28.2-1ubuntu1~18.04.1_amd64.ddeb
+ 0a78e1bb3af35eb00b4a703585701b610d07be5f 24421 gnome-terminal_3.28.2-1ubuntu1~18.04.1_amd64.buildinfo
+ 9ce806d9ce682dbc5b3914e8ca8038bcd8fd1fc1 183856 gnome-terminal_3.28.2-1ubuntu1~18.04.1_amd64.deb
+ 88e9ad899abda128c3bcc8e685977a2557336a97 60376 nautilus-extension-gnome-terminal-dbgsym_3.28.2-1ubuntu1~18.04.1_amd64.ddeb
+ 98203e57d9da01bbde24909ae53634a1932c4568 47496 nautilus-extension-gnome-terminal_3.28.2-1ubuntu1~18.04.1_amd64.deb
+Checksums-Sha256:
+ 935a473c6ea2b5a5e55d93fcbf332f0d2856153d745195596f0e6fcff85d0380 945764 gnome-terminal-data_3.28.2-1ubuntu1~18.04.1_all.deb
+ 735ae2a02805df30289b7849802bd2f325f5843669e8b83f49ed2cc67a3fa0f6 531660 gnome-terminal-dbgsym_3.28.2-1ubuntu1~18.04.1_amd64.ddeb
+ e39882c533cca00e0d7c967f4a34ba4858a4bf68faa61927b0e97fecfa4b87da 24421 gnome-terminal_3.28.2-1ubuntu1~18.04.1_amd64.buildinfo
+ bd7c92e0026aaa1fd23e1a6a30d75458cc281bf3e8a6b675aad7ec757a03496f 183856 gnome-terminal_3.28.2-1ubuntu1~18.04.1_amd64.deb
+ 4529c9c59be92c91e5ea00bafd850436859053a151799351a0302280033eb180 60376 nautilus-extension-gnome-terminal-dbgsym_3.28.2-1ubuntu1~18.04.1_amd64.ddeb
+ 54917386c157471988d500a6b0b5818fb766ef1c225731c2ba8b0b94afa2cf6a 47496 nautilus-extension-gnome-terminal_3.28.2-1ubuntu1~18.04.1_amd64.deb
+Files:
+ 3d072886ff6c25282a880e0483e5906b 945764 gnome optional gnome-terminal-data_3.28.2-1ubuntu1~18.04.1_all.deb
+ 4d5a86fe5d31563d4ac689d919ec4eda 531660 debug optional gnome-terminal-dbgsym_3.28.2-1ubuntu1~18.04.1_amd64.ddeb
+ ba99c1acb1d2a8390c000eaf4bcf7df5 24421 gnome optional gnome-terminal_3.28.2-1ubuntu1~18.04.1_amd64.buildinfo
+ 6e1960a18f12bbb10ea1d553a899671a 183856 gnome optional gnome-terminal_3.28.2-1ubuntu1~18.04.1_amd64.deb
+ 1f82ff7eb1afb722b6e3a22b16834d45 60376 debug optional nautilus-extension-gnome-terminal-dbgsym_3.28.2-1ubuntu1~18.04.1_amd64.ddeb
+ 9c5e6fc83f5186443c2a68670c36c687 47496 gnome optional nautilus-extension-gnome-terminal_3.28.2-1ubuntu1~18.04.1_amd64.deb
+Original-Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>

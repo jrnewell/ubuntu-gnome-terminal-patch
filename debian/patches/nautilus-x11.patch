@@ -1,0 +1,31 @@
+From: Andreas Henriksson <andreas@fatal.se>
+Date: Mon, 24 Feb 2014 20:56:39 +0000
+Subject: Nautilus extension needs platform libraries (x11)
+
+libtool: link:  gcc -shared  -fPIC -DPIC  .libs/libterminal_nautilus_la-terminal-client-utils.o .libs/libterminal_nautilus_la-terminal-i18n.o .libs/libterminal_nautilus_la-terminal-nautilus.o .libs/libterminal_nautilus_la-terminal-gdbus-generated.o .libs/libterminal_nautilus_la-terminal-type-builtins.o   -lnautilus-extension -lgtk-3 -lgdk-3 -latk-1.0 -lpangocairo-1.0 -lgdk_pixbuf-2.0 /usr/lib/x86_64-linux-gnu/libcairo-gobject.so -lpango-1.0 /usr/lib/x86_64-linux-gnu/libcairo.so -lgio-2.0 -lgobject-2.0 -lglib-2.0  -pthread -O2 -Wl,-z -Wl,relro -Wl,-z -Wl,defs -Wl,-O1 -Wl,--as-needed   -pthread -Wl,-soname -Wl,libterminal-nautilus.so -Wl,-version-script -Wl,.libs/libterminal-nautilus.ver -o .libs/libterminal-nautilus.so
+.libs/libterminal_nautilus_la-terminal-client-utils.o: In function `terminal_client_get_fallback_startup_id':
+/tmp/buildd/gnome-terminal-3.11.3/src/terminal-client-utils.c:161: undefined reference to `XCreateWindow'
+/tmp/buildd/gnome-terminal-3.11.3/src/terminal-client-utils.c:172: undefined reference to `XInternAtom'
+/tmp/buildd/gnome-terminal-3.11.3/src/terminal-client-utils.c:174: undefined reference to `XInternAtom'
+/tmp/buildd/gnome-terminal-3.11.3/src/terminal-client-utils.c:178: undefined reference to `XChangeProperty'
+/tmp/buildd/gnome-terminal-3.11.3/src/terminal-client-utils.c:184: undefined reference to `XWindowEvent'
+/tmp/buildd/gnome-terminal-3.11.3/src/terminal-client-utils.c:189: undefined reference to `XDestroyWindow'
+collect2: error: ld returned 1 exit status
+---
+ configure.ac | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 696c757..081857f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -226,7 +226,8 @@ if test "$with_nautilus_extension" = "yes"; then
+   PKG_CHECK_MODULES([NAUTILUS],[
+     libnautilus-extension >= $NAUTILUS_REQUIRED
+     gio-2.0
+-    gio-unix-2.0])
++    gio-unix-2.0
++    $PLATFORM_DEPS])
+ 
+   AC_ARG_WITH([nautilus-dir],
+     [AS_HELP_STRING([--with-nautilus-dir=PATH],[Nautilus extensions directory])],

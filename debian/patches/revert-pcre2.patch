@@ -1,0 +1,372 @@
+From: Jeremy Bicha <jbicha@ubuntu.com>
+Date: Sun, 19 Feb 2017 22:49:25 -0500
+Subject: Revert commits that require PCRE2
+
+Bug-Ubuntu: https://launchpad.net/bugs/1636666
+
+Squashed revert of these commits:
+https://git.gnome.org/browse/gnome-terminal/commit/?id=1f6c999a
+https://git.gnome.org/browse/gnome-terminal/commit/?id=ef7a345f
+https://git.gnome.org/browse/gnome-terminal/commit/?id=45bcfb8d
+---
+ configure.ac                  | 26 +++++++++++++++++++++++--
+ src/terminal-screen.c         | 35 ++++++++++++++++++++++++++++++++-
+ src/terminal-search-popover.c | 45 ++++++++++++++++++++++++++++++++++++++++---
+ src/terminal-search-popover.h |  4 ++++
+ src/terminal-window.c         | 16 +++++++++++++++
+ 5 files changed, 120 insertions(+), 6 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 081857f..3bd58f9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -81,6 +81,27 @@ for target in $($PKG_CONFIG --variable targets gdk-$GTK_API_VERSION); do
+   esac
+ done
+ 
++# PCRE2
++
++AC_MSG_CHECKING([whether PCRE2 support is requested])
++AC_ARG_WITH([pcre2],
++  [AS_HELP_STRING([--without-pcre2],[Disable pcre2 support])],
++  [],[with_pcre2=no])
++AC_MSG_RESULT([$with_pcre2])
++
++PCRE2_PKGS=
++if test "$with_pcre2" = "yes"; then
++  PCRE2_PKGS="libpcre2-8 >= $PCRE2_REQUIRED"
++
++  PKG_CHECK_MODULES([PCRE2],[$PCRE2_PKGS],,
++    [AC_MSG_ERROR([PCRE2 requested but libpcre2-8 not found. Use --without-pcre2 to disable PCRE2])])
++
++  AC_DEFINE([WITH_PCRE2],[1],[Define to 1 to enable pcre2 support])
++  EXTRA_DEPS="$EXTRA_DEPS $PCRE2_PKGS"
++fi
++
++AM_CONDITIONAL([WITH_PCRE2],[test "$with_pcre2" = "yes"])
++
+ # pkg-config checks
+ 
+ PKG_CHECK_MODULES([TERM],
+@@ -91,8 +112,8 @@ PKG_CHECK_MODULES([TERM],
+    gsettings-desktop-schemas >= $GSETTINGS_DESKTOP_SCHEMAS_REQUIRED
+    dconf >= $DCONF_REQUIRED
+    uuid
+-   libpcre2-8 >= $PCRE2_REQUIRED
+-   $PLATFORM_DEPS])
++   $PLATFORM_DEPS
++   $PCRE2_PKGS])
+ 
+ # ****
+ # DBus
+@@ -343,6 +364,7 @@ gnome-terminal-$VERSION:
+       prefix:                 ${prefix}
+       source code location:   ${srcdir}
+       compiler:               ${CC}
++      PCRE2:                  ${with_pcre2}
+       gterminal:              ${enable_gterminal}
+       DBus interface dir:     ${dbusinterfacedir}
+       DBus service dir:       ${dbusservicedir}
+diff --git a/src/terminal-screen.c b/src/terminal-screen.c
+index 1c677a0..71ef761 100644
+--- a/src/terminal-screen.c
++++ b/src/terminal-screen.c
+@@ -18,7 +18,10 @@
+ 
+ #include "config.h"
+ 
++#ifdef WITH_PCRE2
+ #include "terminal-pcre2.h"
++#endif
++
+ #include "terminal-regex.h"
+ #include "terminal-screen.h"
+ 
+@@ -196,8 +199,13 @@ static const TerminalRegexPattern extra_regex_patterns[] = {
+   { "(0[Xx][[:xdigit:]]+|[[:digit:]]+)", FLAVOR_NUMBER },
+ };
+ 
++#ifdef WITH_PCRE2
+ static VteRegex **url_regexes;
+ static VteRegex **extra_regexes;
++#else
++static GRegex **url_regexes;
++static GRegex **extra_regexes;
++#endif
+ static TerminalURLFlavor *url_regex_flavors;
+ static TerminalURLFlavor *extra_regex_flavors;
+ static guint n_url_regexes;
+@@ -301,18 +309,27 @@ free_tag_data (TagData *tagdata)
+ static void
+ precompile_regexes (const TerminalRegexPattern *regex_patterns,
+                     guint n_regexes,
++#ifdef WITH_PCRE2
+                     VteRegex ***regexes,
++#else
++                    GRegex ***regexes,
++#endif
+                     TerminalURLFlavor **regex_flavors)
+ {
+   guint i;
+ 
++#ifdef WITH_PCRE2
+   *regexes = g_new0 (VteRegex*, n_regexes);
++#else
++  *regexes = g_new0 (GRegex*, n_regexes);
++#endif
+   *regex_flavors = g_new0 (TerminalURLFlavor, n_regexes);
+ 
+   for (i = 0; i < n_regexes; ++i)
+     {
+       GError *error = NULL;
+ 
++#ifdef WITH_PCRE2
+       (*regexes)[i] = vte_regex_new_for_match (regex_patterns[i].pattern, -1,
+                                                PCRE2_UTF | PCRE2_NO_UTF_CHECK | PCRE2_MULTILINE,
+                                                &error);
+@@ -323,6 +340,13 @@ precompile_regexes (const TerminalRegexPattern *regex_patterns,
+         g_printerr ("Failed to JIT regex '%s': %s\n", regex_patterns[i].pattern, error->message);
+         g_clear_error (&error);
+       }
++#else
++      (*regexes)[i] = g_regex_new (regex_patterns[i].pattern,
++                                   G_REGEX_OPTIMIZE |
++                                   G_REGEX_MULTILINE,
++                                   0, &error);
++      g_assert_no_error (error);
++#endif
+ 
+       (*regex_flavors)[i] = regex_patterns[i].flavor;
+     }
+@@ -455,7 +479,11 @@ terminal_screen_init (TerminalScreen *screen)
+ 
+       tag_data = g_slice_new (TagData);
+       tag_data->flavor = url_regex_flavors[i];
++#ifdef WITH_PCRE2
+       tag_data->tag = vte_terminal_match_add_regex (terminal, url_regexes[i], 0);
++#else
++      tag_data->tag = vte_terminal_match_add_gregex (terminal, url_regexes[i], 0);
++#endif
+       vte_terminal_match_set_cursor_type (terminal, tag_data->tag, URL_MATCH_CURSOR);
+ 
+       priv->match_tags = g_slist_prepend (priv->match_tags, tag_data);
+@@ -2241,7 +2269,12 @@ terminal_screen_check_extra (TerminalScreen *screen,
+   memset(matches, 0, sizeof(char*) * n_extra_regexes);
+ 
+   if (
+-      vte_terminal_event_check_regex_simple (VTE_TERMINAL (screen),
++#ifdef WITH_PCRE2
++      vte_terminal_event_check_regex_simple(
++#else
++      vte_terminal_event_check_gregex_simple(
++#endif
++                                             VTE_TERMINAL (screen),
+                                              event,
+                                              extra_regexes,
+                                              n_extra_regexes,
+diff --git a/src/terminal-search-popover.c b/src/terminal-search-popover.c
+index 81979b2..ea57e2c 100644
+--- a/src/terminal-search-popover.c
++++ b/src/terminal-search-popover.c
+@@ -23,7 +23,10 @@
+ #include <glib/gi18n.h>
+ #include <gtk/gtk.h>
+ 
++#ifdef WITH_PCRE2
+ #include "terminal-pcre2.h"
++#endif
++
+ #include "terminal-search-popover.h"
+ #include "terminal-intl.h"
+ #include "terminal-window.h"
+@@ -63,8 +66,13 @@ struct _TerminalSearchPopoverPrivate
+ 
+   /* Cached regex */
+   gboolean regex_caseless;
++  gboolean regex_multiline;
+   char *regex_pattern;
++#ifdef WITH_PCRE2
+   VteRegex *regex;
++#else
++  GRegex *regex;
++#endif
+ };
+ 
+ enum {
+@@ -259,7 +267,7 @@ update_regex (TerminalSearchPopover *popover)
+ {
+   TerminalSearchPopoverPrivate *priv = PRIV (popover);
+   const char *search_text;
+-  gboolean caseless;
++  gboolean caseless, multiline = FALSE;
+   gs_free char *pattern;
+   gs_free_error GError *error = NULL;
+ 
+@@ -269,6 +277,7 @@ update_regex (TerminalSearchPopover *popover)
+ 
+   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->regex_checkbutton))) {
+     pattern = g_strdup (search_text);
++    multiline = TRUE;
+   } else {
+     pattern = g_regex_escape_string (search_text, -1);
+   }
+@@ -281,29 +290,47 @@ update_regex (TerminalSearchPopover *popover)
+   }
+ 
+   if (priv->regex_caseless == caseless &&
++      priv->regex_multiline == multiline &&
+       g_strcmp0 (priv->regex_pattern, pattern) == 0)
+     return;
+ 
+   if (priv->regex) {
++#ifdef WITH_PCRE2
+     vte_regex_unref (priv->regex);
++#else
++    g_regex_unref (priv->regex);
++#endif
+   }
+ 
+   g_clear_pointer (&priv->regex_pattern, g_free);
+ 
+   /* FIXME: if comping the regex fails, show the error message somewhere */
+   if (search_text[0] != '\0') {
++#ifdef WITH_PCRE2
+     guint32 compile_flags;
+ 
+-    compile_flags = PCRE2_UTF | PCRE2_NO_UTF_CHECK | PCRE2_MULTILINE;
++    compile_flags = PCRE2_UTF | PCRE2_NO_UTF_CHECK;
+     if (caseless)
+       compile_flags |= PCRE2_CASELESS;
++    if (multiline)
++      compile_flags |= PCRE2_MULTILINE;
+ 
+     priv->regex = vte_regex_new_for_search (pattern, -1, compile_flags, &error);
+     if (priv->regex != NULL &&
+         (!vte_regex_jit (priv->regex, PCRE2_JIT_COMPLETE, NULL) ||
+          !vte_regex_jit (priv->regex, PCRE2_JIT_PARTIAL_SOFT, NULL))) {
+     }
++#else
++    GRegexCompileFlags compile_flags;
++
++    compile_flags = G_REGEX_OPTIMIZE;
++    if (caseless)
++      compile_flags |= G_REGEX_CASELESS;
++    if (multiline)
++      compile_flags |= G_REGEX_MULTILINE;
+ 
++    priv->regex = g_regex_new (pattern, compile_flags, 0, &error);
++#endif
+     if (priv->regex != NULL)
+       gs_transfer_out_value (&priv->regex_pattern, &pattern);
+   } else {
+@@ -350,7 +377,7 @@ terminal_search_popover_init (TerminalSearchPopover *popover)
+   GtkWidget *widget = GTK_WIDGET (popover);
+ 
+   priv->regex_pattern = 0;
+-  priv->regex_caseless = FALSE;
++  priv->regex_caseless = priv->regex_multiline = FALSE;
+ 
+   gtk_widget_init_template (widget);
+ 
+@@ -418,7 +445,11 @@ terminal_search_popover_finalize (GObject *object)
+   TerminalSearchPopoverPrivate *priv = PRIV (popover);
+ 
+   if (priv->regex) {
++#ifdef WITH_PCRE2
+     vte_regex_unref (priv->regex);
++#else
++    g_regex_unref (priv->regex);
++#endif
+   }
+ 
+   g_free (priv->regex_pattern);
+@@ -487,7 +518,11 @@ terminal_search_popover_class_init (TerminalSearchPopoverClass *klass)
+ 
+   pspecs[PROP_REGEX] =
+     g_param_spec_boxed ("regex", NULL, NULL,
++#ifdef WITH_PCRE2
+                         VTE_TYPE_REGEX,
++#else
++                        G_TYPE_REGEX,
++#endif
+                         G_PARAM_READABLE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB);
+ 
+   pspecs[PROP_WRAP_AROUND] =
+@@ -535,7 +570,11 @@ terminal_search_popover_new (GtkWidget *relative_to_widget)
+  *
+  * Returns: (transfer none): the search regex, or %NULL
+  */
++#ifdef WITH_PCRE2
+ VteRegex *
++#else
++GRegex *
++#endif
+ terminal_search_popover_get_regex (TerminalSearchPopover *popover)
+ {
+   g_return_val_if_fail (TERMINAL_IS_SEARCH_POPOVER (popover), NULL);
+diff --git a/src/terminal-search-popover.h b/src/terminal-search-popover.h
+index 10771d9..813f0f3 100644
+--- a/src/terminal-search-popover.h
++++ b/src/terminal-search-popover.h
+@@ -39,7 +39,11 @@ GType terminal_search_popover_get_type (void);
+ 
+ TerminalSearchPopover *terminal_search_popover_new (GtkWidget *relative_to_widget);
+ 
++#ifdef WITH_PCRE2
+ VteRegex *
++#else
++GRegex *
++#endif
+           terminal_search_popover_get_regex (TerminalSearchPopover *popover);
+ 
+ gboolean terminal_search_popover_get_wrap_around (TerminalSearchPopover *popover);
+diff --git a/src/terminal-window.c b/src/terminal-window.c
+index 6470347..e15dfa7 100644
+--- a/src/terminal-window.c
++++ b/src/terminal-window.c
+@@ -1109,13 +1109,21 @@ search_popover_notify_regex_cb (TerminalSearchPopover *popover,
+                                 TerminalWindow *window)
+ {
+   TerminalWindowPrivate *priv = window->priv;
++#ifdef WITH_PCRE2
+   VteRegex *regex;
++#else
++  GRegex *regex;
++#endif
+ 
+   if (G_UNLIKELY (priv->active_screen == NULL))
+     return;
+ 
+   regex = terminal_search_popover_get_regex (popover);
++#ifdef WITH_PCRE2
+   vte_terminal_search_set_regex (VTE_TERMINAL (priv->active_screen), regex, 0);
++#else
++  vte_terminal_search_set_gregex (VTE_TERMINAL (priv->active_screen), regex, 0);
++#endif
+ 
+   terminal_window_update_search_sensitivity (priv->active_screen, window);
+ }
+@@ -1211,7 +1219,11 @@ action_find_clear_cb (GSimpleAction *action,
+   if (priv->active_screen == NULL)
+     return;
+ 
++#ifdef WITH_PCRE2
+   vte_terminal_search_set_regex (VTE_TERMINAL (priv->active_screen), NULL, 0);
++#else
++  vte_terminal_search_set_gregex (VTE_TERMINAL (priv->active_screen), NULL, 0);
++#endif
+   vte_terminal_unselect_all (VTE_TERMINAL (priv->active_screen));
+ }
+ 
+@@ -1606,7 +1618,11 @@ terminal_window_update_search_sensitivity (TerminalScreen *screen,
+   if (screen != priv->active_screen)
+     return;
+ 
++#ifdef WITH_PCRE2
+   gboolean can_search = vte_terminal_search_get_regex (VTE_TERMINAL (screen)) != NULL;
++#else
++  gboolean can_search = vte_terminal_search_get_gregex (VTE_TERMINAL (screen)) != NULL;
++#endif
+ 
+   g_simple_action_set_enabled (lookup_action (window, "find-forward"), can_search);
+   g_simple_action_set_enabled (lookup_action (window, "find-backward"), can_search);

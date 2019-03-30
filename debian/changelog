@@ -1,82 +1,448 @@
-gnome-terminal (3.20.2-1ubuntu6) UNRELEASED; urgency=medium
+gnome-terminal (3.28.2-1ubuntu1~18.04.1) bionic; urgency=medium
 
-  * Add support for right-click paste
+  * debian/{gbp.conf,control{,.in}}: Update for Ubuntu bionic
+  * Backport from cosmic to bionic.
 
- -- James Newell <james@ubuntu-vm>  Wed, 26 Oct 2016 10:03:21 -0800
+ -- Iain Lane <laney@debian.org>  Wed, 30 May 2018 14:03:45 +0100
 
-gnome-terminal (3.20.2-1ubuntu5) yakkety; urgency=medium
+gnome-terminal (3.28.2-1ubuntu1) cosmic; urgency=medium
+
+  * Merge with Debian. Remaining changes:
+    + debian/rules:
+      - Install compatibility version of gnome-terminal.desktop
+    + gnome-terminal.wrap, debian/rules:
+      - Add a wrapper script to restore command line compatibility.
+    + debian/control.in:
+      - gnome-terminal depends on python3, python3-gi and gir1.2-glib-2.0 for
+        the wrapper script.
+      - Don't Build-Depend on PCRE2
+    + Add 0001-Restore-transparency.patch:
+      - Restore transparency support
+    + Add 0001-Add-style-classes-and-CSS-names-to-some-of-our-widge.patch:
+      - Add CSS names and style classes so we can theme things more easily.
+    + Add 0001-screen-window-Extra-padding-around-transparent-termi.patch:
+      - Fix transparency on Wayland. Patch by Owen Taylor, via Debarshi Ray @
+        Fedora (LP: #1650395)
+    + Add 50_add_unity_quicklist.patch:
+      - Add Unity quicklist menu item.
+    + Add 52_support_apturl.patch:
+      - Support apt: urls.
+    + Add 60_add_lp_handler.patch:
+      - Add a handler for launchpad bug URLs.
+    + Add scrollbar-background-theming.patch:
+      - Draw background under the scrollbar that matches the actual terminal
+        background color. This allows proper theming.
+    + Add debian/patches/revert-pcre2.patch:
+      - Revert changes that require PCRE2 since it's not in main
+        (see MIR #163666)
+  * Keep 006-fix-invalid-appstream-metadata.patch:
+    - Ubuntu's AppStream versions and http://appstream.ubuntu.com/
+      don't support gnome-terminal's syntax yet
+  * debian/{gbp.conf,control{,.in}}: Update for Ubuntu
+
+ -- Iain Lane <laney@debian.org>  Wed, 30 May 2018 13:47:09 +0100
+
+gnome-terminal (3.28.2-1) unstable; urgency=medium
+
+  [ Iain Lane ]
+  * New upstream release 3.28.2 (LP: #1774167)
+    + [47a9491] client: legacy: Fix output commenting.
+      Make sure each line starts with '#' even if the message contains
+      embedded newlines.
+    + [1828cb6] prefs: editor: Translate encoding names (LP: #1771290)
+  * Bump required vte to 2.52.2, per upstream.
+
+ -- Iain Lane <laney@debian.org>  Wed, 30 May 2018 11:48:43 +0100
+
+gnome-terminal (3.28.1-2) unstable; urgency=medium
+
+  * Restore File > New Tab menu item. Thanks Debarshi Ray for the suggestion.
+    (LP: #1747171) (Closes: #783903)
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 11 May 2018 19:37:03 -0400
+
+gnome-terminal (3.28.1-1ubuntu2) cosmic; urgency=medium
+
+  * Restore File > New Tab menu item. Thanks Debarshi Ray for the suggestion.
+    (LP: #1747171)
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 11 May 2018 17:15:21 -0400
+
+gnome-terminal (3.28.1-1ubuntu1.1) bionic; urgency=medium
+
+  * Restore File > New Tab menu item. Thanks Debarshi Ray for the suggestion.
+    (LP: #1747171)
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 11 May 2018 17:15:21 -0400
+
+gnome-terminal (3.28.1-1ubuntu1) bionic; urgency=medium
+
+  * Merge with Debian. Remaining changes:
+    + debian/rules:
+      - Install compatibility version of gnome-terminal.desktop
+    + gnome-terminal.wrap, debian/rules:
+      - Add a wrapper script to restore command line compatibility.
+    + debian/control.in:
+      - gnome-terminal depends on python3, python3-gi and gir1.2-glib-2.0 for
+        the wrapper script.
+      - Don't Build-Depend on PCRE2
+    + Add 0001-Restore-transparency.patch:
+      - Restore transparency support
+    + Add 0001-Add-style-classes-and-CSS-names-to-some-of-our-widge.patch:
+      - Add CSS names and style classes so we can theme things more easily.
+    + Add 0001-screen-window-Extra-padding-around-transparent-termi.patch:
+      - Fix transparency on Wayland. Patch by Owen Taylor, via Debarshi Ray @
+        Fedora (LP: #1650395)
+    + Add 50_add_unity_quicklist.patch:
+      - Add Unity quicklist menu item.
+    + Add 52_support_apturl.patch:
+      - Support apt: urls.
+    + Add 60_add_lp_handler.patch:
+      - Add a handler for launchpad bug URLs.
+    + Add scrollbar-background-theming.patch:
+      - Draw background under the scrollbar that matches the actual terminal
+        background color. This allows proper theming.
+    + Add debian/patches/revert-pcre2.patch:
+      - Revert changes that require PCRE2 since it's not in main
+        (see MIR #163666)
+  * Keep 006-fix-invalid-appstream-metadata.patch:
+    - Ubuntu's AppStream versions and http://appstream.ubuntu.com/
+      don't support gnome-terminal's syntax yet
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 10 Apr 2018 14:17:12 -0400
+
+gnome-terminal (3.28.1-1) unstable; urgency=medium
+
+  * New upstream release
+  * Bump minimum libvte-2.91-dev to 0.52.1
+  * Bump Standards-Version to 4.1.4
+  * Drop 0006-fix-invalid-appstream-metadata.patch: No longer required
+    since Debian has updated its AppStream versions now
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 09 Apr 2018 18:21:41 -0400
+
+gnome-terminal (3.28.0-1ubuntu1) bionic; urgency=medium
+
+  * Merge with Debian. Remaining changes:
+    + debian/rules:
+      - Install compatibility version of gnome-terminal.desktop
+    + gnome-terminal.wrap, debian/rules:
+      - Add a wrapper script to restore command line compatibility.
+    + debian/control.in:
+      - gnome-terminal depends on python3, python3-gi and gir1.2-glib-2.0 for
+        the wrapper script.
+      - Don't Build-Depend on PCRE2
+    + Add 0001-Restore-transparency.patch:
+      - Restore transparency support
+    + Add 0001-Add-style-classes-and-CSS-names-to-some-of-our-widge.patch:
+      - Add CSS names and style classes so we can theme things more easily.
+    + Add 0001-screen-window-Extra-padding-around-transparent-termi.patch:
+      - Fix transparency on Wayland. Patch by Owen Taylor, via Debarshi Ray @
+        Fedora (LP: #1650395)
+    + Add 50_add_unity_quicklist.patch:
+      - Add Unity quicklist menu item.
+    + Add 52_support_apturl.patch:
+      - Support apt: urls.
+    + Add 60_add_lp_handler.patch:
+      - Add a handler for launchpad bug URLs.
+    + Add scrollbar-background-theming.patch:
+      - Draw background under the scrollbar that matches the actual terminal
+        background color. This allows proper theming.
+    + Add debian/patches/revert-pcre2.patch:
+      - Revert changes that require PCRE2 since it's not in main
+        (see MIR #163666)
+ 
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Wed, 21 Mar 2018 14:05:46 -0400
+
+gnome-terminal (3.28.0-1) unstable; urgency=medium
+
+  * New upstream release
+  * Bump minimum libvte-2.91-dev to 0.52.0
+  * Split nautilus-extension-gnome-terminal into a separate package so that
+    it can be individually installed or uninstalled by appstream clients
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 12 Mar 2018 18:16:20 -0400
+
+gnome-terminal (3.27.92-1ubuntu1) bionic; urgency=medium
+
+  * Merge with Debian. Remaining changes:
+    + debian/rules:
+      - Install compatibility version of gnome-terminal.desktop
+    + gnome-terminal.wrap, debian/rules:
+      - Add a wrapper script to restore command line compatibility.
+    + debian/control.in:
+      - gnome-terminal depends on python3, python3-gi and gir1.2-glib-2.0 for
+        the wrapper script.
+      - Don't Build-Depend on PCRE2
+    + Add 0001-Restore-transparency.patch:
+      - Restore transparency support
+    + Add 0001-Add-style-classes-and-CSS-names-to-some-of-our-widge.patch:
+      - Add CSS names and style classes so we can theme things more easily.
+    + Add 0001-screen-window-Extra-padding-around-transparent-termi.patch:
+      - Fix transparency on Wayland. Patch by Owen Taylor, via Debarshi Ray @
+        Fedora (LP: #1650395)
+    + Add 50_add_unity_quicklist.patch:
+      - Add Unity quicklist menu item.
+    + Add 52_support_apturl.patch:
+      - Support apt: urls.
+    + Add 60_add_lp_handler.patch:
+      - Add a handler for launchpad bug URLs.
+    + Add scrollbar-background-theming.patch:
+      - Draw background under the scrollbar that matches the actual terminal
+        background color. This allows proper theming.
+    + Add debian/patches/revert-pcre2.patch:
+      - Revert changes that require PCRE2 since it's not in main
+        (see MIR #163666)
+ 
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 06 Mar 2018 12:09:33 -0500
+
+gnome-terminal (3.27.92-1) unstable; urgency=medium
+
+  * New upstream release candidate
+  * Bump minimum libvte-2.91-dev to 0.51.92
+  * Add 0006-fix-invalid-appstream-metadata.patch:
+    - Adjust the AppStream metadata file so that it works with GNOME Software
+  * Drop 10_kfreebsd-f_dupfd_cloexec.patch:
+    - patch header says it isn't needed after Stretch
+  * Release to unstable
+
+ -- Jeremy Bicha <jbicha@debian.org>  Tue, 06 Mar 2018 11:56:33 -0500
+
+gnome-terminal (3.27.90-1ubuntu1) bionic; urgency=medium
+
+  [ Jeremy Bicha ]
+  * Merge with Debian (LP: #1744711). Remaining changes:
+    + debian/rules:
+      - Install compatibility version of gnome-terminal.desktop
+    + gnome-terminal.wrap, debian/rules:
+      - Add a wrapper script to restore command line compatibility.
+    + debian/control.in:
+      - gnome-terminal depends on python3, python3-gi and gir1.2-glib-2.0 for
+        the wrapper script.
+      - Don't Build-Depend on PCRE2
+    + Add 0001-Restore-transparency.patch:
+      - Restore transparency support
+    + Add 0001-Add-style-classes-and-CSS-names-to-some-of-our-widge.patch:
+      - Add CSS names and style classes so we can theme things more easily.
+    + Add 0001-screen-window-Extra-padding-around-transparent-termi.patch:
+      - Fix transparency on Wayland. Patch by Owen Taylor, via Debarshi Ray @
+        Fedora (LP: #1650395)
+    + Add 50_add_unity_quicklist.patch:
+      - Add Unity quicklist menu item.
+    + Add 52_support_apturl.patch:
+      - Support apt: urls.
+    + Add 60_add_lp_handler.patch:
+      - Add a handler for launchpad bug URLs.
+    + Add scrollbar-background-theming.patch:
+      - Draw background under the scrollbar that matches the actual terminal
+        background color. This allows proper theming.
+    + Add debian/patches/revert-pcre2.patch:
+      - Revert changes that require PCRE2 since it's not in main
+        (see MIR #163666)
+ 
+  [ Egmont Koblinger ]
+  * Update patches to apply against new version
+  * Always show "Use transparency from system theme" checkbox (LP: #1745825)
+
+ -- Egmont Koblinger <egmont@gmail.com>  Fri, 16 Feb 2018 13:09:20 -0500
+
+gnome-terminal (3.27.90-1) experimental; urgency=medium
+
+  * New upstream development release
+    - Unified preferences dialog
+  * Bump minimum libvte-2.91-dev to 2.51.3
+  * Drop obsolete vala build-dependency
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 16 Feb 2018 13:06:35 -0500
+
+gnome-terminal (3.26.2-3) unstable; urgency=medium
+
+  * Update Vcs fields for migration to https://salsa.debian.org/
+  * Bump debhelper compat to 11
+
+ -- Jeremy Bicha <jbicha@debian.org>  Sat, 20 Jan 2018 18:17:36 -0500
+
+gnome-terminal (3.26.2-2) unstable; urgency=medium
+
+  * Update Vcs fields for conversion to git
+  * Add debian/gbp.conf
+  * Bump Standards-Version to 4.1.2
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 15 Dec 2017 17:54:35 -0500
+
+gnome-terminal (3.26.2-1) unstable; urgency=medium
+
+  * New upstream release
+  * Bump Build-Depends on libvte-2.91-dev to (>= 0.50.2)
+  * Refresh patches
+  * Switch to dh_missing and abort on uninstalled files
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 01 Nov 2017 19:59:22 +0100
+
+gnome-terminal (3.26.1-2) unstable; urgency=medium
+
+  * Team upload
+  * debian/gnome-terminal.wrapper: Improve emulation of xterm -e.
+    Run gnome-terminal -- EXECUTABLE [ARGS] instead of deprecated
+    gnome-terminal -e QUOTED_STRING or gnome-terminal -x EXECUTABLE [ARGS],
+    and emulate xterm's fallback-to-shell behaviour more precisely.
+  * d/p/window-Fix-tiled-check.patch: Use non-character-cell-based
+    sizing whenever at least one edge is tiled, partially addressing
+    a regression with GTK+ >= 3.22.23 (partial fix for: #879566)
+
+ -- Simon McVittie <smcv@debian.org>  Mon, 23 Oct 2017 23:26:48 +0100
+
+gnome-terminal (3.26.1-1) unstable; urgency=medium
+
+  * New upstream translations release (Closes: #877293)
+  * Bump Build-Depends on libvte-2.91-dev to (>= 0.50.1) as per configure.ac.
+  * Bump Standards-Version to 4.1.1
+
+ -- Jeremy Bicha <jbicha@debian.org>  Tue, 03 Oct 2017 10:57:28 -0400
+
+gnome-terminal (3.26.0-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream stable release
+  * debian/control.in:
+    - Bump Build-Depends on libvte-2.91-dev to (>= 0.50.0)
+
+ -- Simon McVittie <smcv@debian.org>  Tue, 12 Sep 2017 14:45:06 +0100
+
+gnome-terminal (3.25.92-1) unstable; urgency=medium
+
+  * New upstream release
+  * debian/control.in:
+    - Bump Build-Depends on libvte-2.91-dev to (>= 0.49.92)
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 08 Sep 2017 17:53:54 -0400
+
+gnome-terminal (3.24.2-1) unstable; urgency=medium
+
+  [ Simon McVittie ]
+  * Bump Recommends on a D-Bus session bus up to Depends. gnome-terminal
+    has a client/server architecture which relies on D-Bus.
+    (Closes: #871618)
+
+  [ Jeremy Bicha ]
+  * New upstream release
+  * debian/control.in:
+    - Bump Build-Depends on libvte-2.91-dev to (>= 0.48.2)
+  * debian/gnome-terminal.install:
+    - Update for new appstream data location
+  * Bump Standards-Version to 4.1.0
+
+ -- Simon McVittie <smcv@debian.org>  Wed, 30 Aug 2017 20:12:54 -0400
+
+gnome-terminal (3.22.2-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 20 Mar 2017 23:25:41 +0100
+
+gnome-terminal (3.22.1-2) unstable; urgency=medium
+
+  * Disable prefs migration from GConf to GSettings. This was already
+    available for the migration from wheezy to jessie and we don't want to
+    pull in the deprecated gconf library in stretch.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 01 Mar 2017 17:29:32 +0100
+
+gnome-terminal (3.22.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Bump Build-Depends on libvte-2.91-dev to (>= 0.46.1) as per configure.ac.
+  * Refresh patches.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 08 Nov 2016 16:01:25 +0100
+
+gnome-terminal (3.22.0-3) unstable; urgency=medium
 
   * debian/control.in:
     - Recommend default-dbus-session-bus | dbus-session-bus instead of
       dbus-x11 (Closes: #835889)
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 29 Sep 2016 22:30:25 -0400
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 29 Sep 2016 22:21:38 -0400
 
-gnome-terminal (3.20.2-1ubuntu4) yakkety; urgency=medium
+gnome-terminal (3.22.0-2) unstable; urgency=medium
 
-  * Add git_allow-inspector-without-debug.patch:
-    - Add Inspector item to Help menu if GTK's enable-inspector-keybinding
-      gsettings is true instead of requiring gnome-terminal to be recompiled
-      with --enable-debug. The usual Ctrl+Shift+I or Ctrl+Shift+D keyboard
-      shortcuts are not enabled so that they are available for command-line
-      apps. Backported from 3.22.
-  * debian/rules:
-    - Don't build with --enable-debug
+  * Bump Build-Depends on libnautilus-extension-dev to (>= 3.21.92-3~) to
+    ensure we have a version with multiarch support.
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 27 Sep 2016 20:10:52 -0400
+ -- Michael Biebl <biebl@debian.org>  Wed, 21 Sep 2016 22:10:54 +0200
 
-gnome-terminal (3.20.2-1ubuntu3) yakkety; urgency=medium
+gnome-terminal (3.22.0-1) unstable; urgency=medium
 
-  * debian/patches/60_add_lp_handler.patch: Update - move the regex to the
-    right struct so that it's actually used.
+  * New upstream release.
+  * Bump vte build-dependency to >= 0.46.0 according to configure.ac changes.
 
- -- Iain Lane <iain@orangesquash.org.uk>  Mon, 22 Aug 2016 12:33:35 +0100
+ -- Andreas Henriksson <andreas@fatal.se>  Mon, 19 Sep 2016 10:47:54 +0200
 
-gnome-terminal (3.20.2-1ubuntu2) yakkety; urgency=medium
+gnome-terminal (3.21.92-1) unstable; urgency=medium
 
-  * debian/patches/0001-Restore-transparency.patch: Don't crash if the alpha
-    has a weird value. (LP: #1611358)
+  * New upstream development release.
+  * Bump Build-Depends on libvte-2.91-dev to (>= 0.45.92) as per configure.ac.
+  * Drop Revert-window-Fix-CSD-size-calculations-with-long-ti.patch and
+    window-Fix-CSD-size-calculations-with-long-titles.patch, merged upstream.
+  * Bump debhelper compat level to 10.
+  * Install nautilus extension into multiarch path.
 
- -- Iain Lane <iain.lane@canonical.com>  Tue, 09 Aug 2016 13:49:00 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 14 Sep 2016 18:42:34 +0200
 
-gnome-terminal (3.20.2-1ubuntu1) yakkety; urgency=medium
+gnome-terminal (3.21.90-3) unstable; urgency=medium
 
-  [ Tim Lunn ]
-  * Merge with Debian, remaining Ubuntu changes:
-    + debian/control:
-      - gnome-terminal depends on python3, python3-gi and gir1.2-glib-2.0 for
-        the wrapper script.
-    + gnome-terminal.wrap, debian/rules:
-      - Add a wrapper script to restore command line compatibility.
-    + debian/patches/0001-Restore-transparency.patch:
-      - Restore transparency support
-    + debian/patches/50_add_unity_quicklist.patch:
-      - Add Unity quicklist menu item.
-    + debian/patches/52_support_apturl.patch:
-      - Support apt: urls.
-    + debian/patches/60_add_lp_handler.patch:
-      - Add a handler for launchpad bug URLs.
-    + debian/patches/scrollbar-background-theming.patch:
-      - Draw background under the scrollbar that matches the actual terminal
-        background color. This allows proper theming.
-  * debian/patches/60_add_lp_handler.patch: Update to apply with the regex
-    refactoring in 3.20
-  * debian/control.in: Add build-dep on gnome-shell, this is a build time only
-    dependency so universe dep is ok now.
-  * debian/patches/gnome-shell_search_provider.patch: Drop not needed with 
-    above change
+  * Team upload
 
-  [ Iain Lane ]
-  * d/p/0001-Restore-transparency.patch: Restore a commit which was
-    missed.
-  * d/p/0001-Add-style-classes-and-CSS-names-to-some-of-our-widge.patch:
-    Add CSS names and style classes so we can theme things more easily.
+  [ Sjoerd Simons ]
+  * debian/patches/window-Fix-CSD-size-calculations-with-long-titles.patch
+    - Added. Fix terminal window unintentially resizing when using long titles
+      and CSD (bgo#769898c9)
 
-  [ Robert Ancell ]
-  * debian/rules:
-    - Install compatibility version of gnome-terminal.desktop
+ -- Simon McVittie <smcv@debian.org>  Wed, 07 Sep 2016 13:25:38 +0100
 
- -- Iain Lane <iain.lane@canonical.com>  Thu, 04 Aug 2016 13:36:52 +0100
+gnome-terminal (3.21.90-2) unstable; urgency=medium
+
+  * Upload to unstable.
+  * Convert from cdbs to dh.
+  * Enable all hardening flags.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 01 Sep 2016 17:05:24 +0200
+
+gnome-terminal (3.21.90-1) experimental; urgency=medium
+
+  * New upstream beta release.
+  * Update build-dependencies according to configure.ac changes:
+    - bump libvte-2.91-dev to >= 0.45.90
+  * Drop following debian/patches superseeded/included in current release:
+    - Fix-chunked-resize-and-geometry-option.patch
+    - Replace-no-op-gtk_window_resize_to_geometry-by-calcu.patch
+    - git_notebook-avoid-crash-on-tab-DND.patch
+  * Have quilt refresh remaining patches.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Thu, 18 Aug 2016 17:07:09 +0200
+
+gnome-terminal (3.20.2-4) unstable; urgency=medium
+
+  * debian/patches/window-Fix-CSD-size-calculations-with-long-titles.patch
+    - Disabled. Fixes things on wayland, causes regressions on X11, grumble.
+      (Closes: #834455)
+
+ -- Sjoerd Simons <sjoerd.simons@collabora.co.uk>  Thu, 18 Aug 2016 08:46:38 +0200
+
+gnome-terminal (3.20.2-3) unstable; urgency=medium
+
+  * debian/patches/window-Fix-CSD-size-calculations-with-long-titles.patch
+    - Added. Fix terminal window unintentially resizing when using long titles
+      and CSD (bgo#769898)
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 15 Aug 2016 09:04:09 +0200
+
+gnome-terminal (3.20.2-2) unstable; urgency=medium
+
+  * Add debian/patches/git_notebook-avoid-crash-on-tab-DND.patch
+    from upstream git. (Closes: #825818)
+
+ -- Andreas Henriksson <andreas@fatal.se>  Mon, 25 Jul 2016 20:47:13 +0200
 
 gnome-terminal (3.20.2-1) unstable; urgency=medium
 
@@ -141,35 +507,6 @@ gnome-terminal (3.20.0-1) unstable; urgency=medium
 
  -- Andreas Henriksson <andreas@fatal.se>  Fri, 25 Mar 2016 09:48:50 +0100
 
-gnome-terminal (3.18.3-1ubuntu1) xenial; urgency=low
-
-  * Merge with Debian, remaining Ubuntu changes:
-    + debian/control:
-      - Don't depend on gnome-shell - it is in Universe. (See patch below).
-      - gnome-terminal depends on python3, python3-gi and gir1.2-glib-2.0 for
-        the wrapper script.
-    + gnome-terminal.wrap, debian/rules:
-      - Add a wrapper script to restore command line compatibility.
-    + debian/patches/0001-Restore-transparency.patch:
-      - Restore transparency support
-    + debian/patches/50_add_unity_quicklist.patch:
-      - Add Unity quicklist menu item.
-    + debian/patches/52_support_apturl.patch:
-      - Support apt: urls.
-    + debian/patches/60_add_lp_handler.patch:
-      - Add a handler for launchpad bug URLs.
-    + Add gnome-shell_search_provider.patch:
-      - Provide a local copy of the dbus interface so can build shell search
-        provider without depending on gnome-shell which is in universe.
-    + debian/patches/scrollbar-background-theming.patch:
-      - Draw background under the scrollbar that matches the actual terminal
-        background color. This allows proper theming.
-  * debian/patches/52_support_apturl.patch,
-    debian/patches/60_add_lp_handler.patch: Update to apply with the regex
-    refactoring in 3.18.3
-
- -- Iain Lane <iain@orangesquash.org.uk>  Tue, 15 Mar 2016 12:03:08 +0000
-
 gnome-terminal (3.18.3-1) unstable; urgency=medium
 
   * New upstream release.
@@ -178,95 +515,11 @@ gnome-terminal (3.18.3-1) unstable; urgency=medium
 
  -- Michael Biebl <biebl@debian.org>  Sun, 06 Mar 2016 22:18:26 +0100
 
-gnome-terminal (3.18.2-1ubuntu3) xenial; urgency=medium
-
-  * 0001-window-Make-the-drawing-robust-across-all-themes.patch: Merge into
-    0001-Restore-Transparency.patch.
-  * 0001-Restore-Transparency.patch: Cherry-pick
-    38a9536245918e521005ca3b4b473d3f68a24da4 from Debarshi's branch, to fix
-    padding in some display servers.
-  * scrollbar-background-theming.patch: Fix to apply given the above.
-
- -- Iain Lane <iain@orangesquash.org.uk>  Tue, 01 Mar 2016 11:47:03 +0000
-
-gnome-terminal (3.18.2-1ubuntu2) xenial; urgency=medium
-
-  * Unrevert my last upload.
-
- -- Iain Lane <iain.lane@canonical.com>  Thu, 12 Nov 2015 10:01:58 +0000
-
-gnome-terminal (3.18.2-1ubuntu1) xenial; urgency=medium
-
-  * Merge with Debian, remaining Ubuntu changes:
-  * debian/control:
-    - Don't depend on gnome-shell - it is in Universe. (See patch below).
-    - gnome-terminal depends on python3, python3-gi and gir1.2-glib-2.0 for the
-      wrapper script.
-  * gnome-terminal.wrap:
-  * debian/rules:
-    - Add a wrapper script to restore command line compatibility.
-  * debian/patches/0001-Restore-transparency.patch:
-    - Restore transparency support
-  * debian/patches/0001-window-Make-the-drawing-robust-across-all-themes.patch:
-    - Make sure the window always draws a background, even when transparency
-      is on.
-  * debian/patches/50_add_unity_quicklist.patch:
-    - Add Unity quicklist menu item.
-  * debian/patches/52_support_apturl.patch:
-    - Support apt: urls.
-  * debian/patches/60_add_lp_handler.patch:
-    - Add a handler for launchpad bug URLs.
-  * Add gnome-shell_search_provider.patch:
-    - Provide a local copy of the dbus interface so can build shell search
-      provider without depending on gnome-shell which is in universe.
-  * debian/patches/scrollbar-background-theming.patch:
-    - Draw background under the scrollbar that matches the actual terminal
-      background color. This allows proper theming.
-
- -- Robert Ancell <robert.ancell@canonical.com>  Thu, 12 Nov 2015 17:10:13 +1300
-
 gnome-terminal (3.18.2-1) unstable; urgency=medium
 
   * New upstream release.
 
  -- Michael Biebl <biebl@debian.org>  Wed, 11 Nov 2015 15:52:44 +0100
-
-gnome-terminal (3.18.1-1ubuntu2) xenial; urgency=medium
-
-  * debian/patches/0001-Restore-transparency.patch: Pass the right parent
-    again.
-
- -- Iain Lane <iain.lane@canonical.com>  Wed, 11 Nov 2015 16:23:46 +0000
-
-gnome-terminal (3.18.1-1ubuntu1) xenial; urgency=medium
-
-  * Merge with Debian, remaining Ubuntu changes:
-  * debian/control:
-    - Don't depend on gnome-shell - it is in Universe. (See patch below).
-    - gnome-terminal depends on python3, python3-gi and gir1.2-glib-2.0 for the
-      wrapper script.
-  * gnome-terminal.wrap:
-  * debian/rules:
-    - Add a wrapper script to restore command line compatibility.
-  * debian/patches/0001-Restore-transparency.patch:
-    - Restore transparency support
-  * debian/patches/0001-window-Make-the-drawing-robust-across-all-themes.patch:
-    - Make sure the window always draws a background, even when transparency
-      is on.
-  * debian/patches/50_add_unity_quicklist.patch:
-    - Add Unity quicklist menu item.
-  * debian/patches/52_support_apturl.patch:
-    - Support apt: urls.
-  * debian/patches/60_add_lp_handler.patch:
-    - Add a handler for launchpad bug URLs.
-  * Add gnome-shell_search_provider.patch:
-    - Provide a local copy of the dbus interface so can build shell search
-      provider without depending on gnome-shell which is in universe.
-  * debian/patches/scrollbar-background-theming.patch:
-    - Draw background under the scrollbar that matches the actual terminal
-      background color. This allows proper theming.
-
- -- Robert Ancell <robert.ancell@canonical.com>  Wed, 04 Nov 2015 13:38:31 +1300
 
 gnome-terminal (3.18.1-1) unstable; urgency=medium
 
@@ -274,14 +527,6 @@ gnome-terminal (3.18.1-1) unstable; urgency=medium
   * Bump Build-Depends on libvte-2.91-dev to (>= 0.42.1) as per configure.ac.
 
  -- Michael Biebl <biebl@debian.org>  Wed, 14 Oct 2015 17:30:20 +0200
-
-gnome-terminal (3.18.1-0ubuntu1) xenial; urgency=medium
-
-  * New upstream release
-  * debian/control:
-    - Bump build-depends on libglib2.0-dev, libvte-2.91-dev, valac
-
- -- Robert Ancell <robert.ancell@canonical.com>  Tue, 27 Oct 2015 16:38:22 +1300
 
 gnome-terminal (3.18.0-1) unstable; urgency=medium
 
@@ -306,54 +551,6 @@ gnome-terminal (3.18.0-1) unstable; urgency=medium
   * Have quilt refresh patches to make them apply cleanly.
 
  -- Andreas Henriksson <andreas@fatal.se>  Tue, 22 Sep 2015 17:52:00 +0200
-
-gnome-terminal (3.16.2-1ubuntu4) wily; urgency=medium
-
-  * debian/patches/0001-Restore-transparency.patch: Pass the correct parent
-    dialog to terminal_app_edit_profile () for the TreeView's row-activated
-    callback, fixing crash when double clicking a profile name in the list.
-    (LP: #1500671)
-
- -- Iain Lane <iain@orangesquash.org.uk>  Mon, 19 Oct 2015 13:06:20 +0100
-
-gnome-terminal (3.16.2-1ubuntu3) wily; urgency=medium
-
-  * debian/patches/scrollbar-background-theming.patch:
-    - Draw background under the scrollbar that matches the actual terminal
-      background color. This allows proper theming. (LP: #1493964)
-
- -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Fri, 11 Sep 2015 17:20:59 +0100
-
-gnome-terminal (3.16.2-1ubuntu2) wily; urgency=medium
-
-  * No-change rebuild for python3.5 transition
-
- -- Steve Langasek <steve.langasek@ubuntu.com>  Wed, 22 Jul 2015 17:08:12 +0000
-
-gnome-terminal (3.16.2-1ubuntu1) wily; urgency=low
-
-  * Merge with Debian, remaining changes:
-    - debian/patches/50_add_unity_quicklist.patch: Add Unity quicklist menu
-      item.
-    - debian/patches/52_support_apturl.patch: Support apt: urls.
-    - debian/patches/60_add_lp_handler.patch: Add a handler for launchpad bug
-      URLs.
-    - debian/patches/0001-Restore-transparency.patch: Restore transparency
-      support, dropped upstream. Patch from Debarishi Ray, modified by Iain
-      Lane to support a 'theme' default value.
-    - debian/patches/0001-window-Make-the-drawing-robust-across-all-themes.patch:
-      Make sure the window always draws a background, even when transparency
-      is on.
-    - Add gnome-shell_search_provider.patch: provide a local copy of the dbus
-      interface so can build shell search provider without depending on
-      gnome-shell which is in universe
-    - Add a wrapper script to restore command line compatibility.
-  * debian/patches/0001-client-legacy-Fall-back-to-default-profile.patch:
-    Drop, applied upstream.
-  * gnome-terminal.wrap: Support the case where --app-id is passed to refer to
-    a custom .service file.
-
- -- Iain Lane <iain.lane@canonical.com>  Mon, 01 Jun 2015 15:05:02 +0100
 
 gnome-terminal (3.16.2-1) unstable; urgency=medium
 
@@ -383,73 +580,6 @@ gnome-terminal (3.14.2-1) unstable; urgency=medium
   * Drop appdata-tools build-dependency
 
  -- Andreas Henriksson <andreas@fatal.se>  Tue, 19 May 2015 16:35:34 +0200
-
-gnome-terminal (3.14.2-0ubuntu5) wily; urgency=medium
-
-  * gnome-terminal.wrap: Fix conditional: only directly invoke g-t if we don't
-    pass --disable-factory. The --class fallback didn't work, but we never hit
-    this bug because the conditional was wrong.
-
- -- Iain Lane <iain.lane@canonical.com>  Tue, 26 May 2015 18:16:10 +0100
-
-gnome-terminal (3.14.2-0ubuntu4) wily; urgency=medium
-
-  * Apply fix from Ed Catamur to wait on the server instead of the client in
-    --disable-factory mode. This is compatible with previous versions of
-    gnome-terminal.
-
- -- Iain Lane <iain.lane@canonical.com>  Tue, 26 May 2015 12:36:21 +0100
-
-gnome-terminal (3.14.2-0ubuntu3) vivid; urgency=medium
-
-  * debian/gnome-terminal: Add a wrapper script to launch gnome-terminal with
-    a different app-id when a user passes the now ignored --disable-factory
-    option. This should restore compatibility with old launchers for users who
-    are upgrading.
-  * 0001-client-legacy-Fall-back-to-default-profile.patch: When specifying a
-    profile on the commandline, fall back to the default if it doesn't exist.
-
- -- Iain Lane <iain.lane@canonical.com>  Wed, 08 Apr 2015 16:18:11 +0100
-
-gnome-terminal (3.14.2-0ubuntu2) vivid; urgency=medium
-
-  * Change appdata-tools b-dep to appstream-util
-
- -- Jackson Doak <noskcaj@ubuntu.com>  Sat, 14 Feb 2015 08:25:21 +1100
-
-gnome-terminal (3.14.2-0ubuntu1) vivid; urgency=medium
-
-  * Pass the terminal window in all code paths that launch the profile editor,
-    to avoid dereferencing the wrong thing. (LP: #1401192)
-  * New upstream translation release.
-
- -- Iain Lane <iain.lane@canonical.com>  Mon, 15 Dec 2014 17:00:27 +0000
-
-gnome-terminal (3.14.1-1ubuntu1) vivid; urgency=medium
-
-  [ Iain Lane ]
-  * Merge with Debian, remaining changes:
-    - debian/patches/50_add_unity_quicklist.patch: Add Unity quicklist menu
-      item.
-    - debian/patches/52_support_apturl.patch: Support apt: urls.
-    - debian/patches/60_add_lp_handler.patch: Add a handler for launchpad bug
-      URLs.
-    - debian/patches/0001-Restore-transparency.patch: Restore transparency
-      support, dropped upstream. Patch from Debarishi Ray, modified by Iain
-      Lane to support a 'theme' default value.
-    - Add 61_cwd_fallback.patch: Provide fallback for reading current
-      directory if OSC 7 fails.
-  * debian/patches/0001-window-Make-the-drawing-robust-across-all-themes.patch:
-    Make sure the window always draws a background, even when transparency is
-    on.
-  * Disable shell provider, we don't want to build-dep on gnome-shell.
-
-  [ Tim Lunn ]
-  * Add gnome-shell_search_provider.patch: provide a local copy of the dbus
-    interface so can build shell search provider without depending on
-    gnome-shell which is in universe (LP: #1390224)
-
- -- Iain Lane <iain.lane@canonical.com>  Fri, 14 Nov 2014 16:39:19 +0000
 
 gnome-terminal (3.14.1-1) unstable; urgency=medium
 
@@ -504,12 +634,6 @@ gnome-terminal (3.12.3-1) unstable; urgency=medium
 
  -- Andreas Henriksson <andreas@fatal.se>  Mon, 23 Jun 2014 20:47:43 +0200
 
-gnome-terminal (3.12.3-0ubuntu1) vivid; urgency=medium
-
-  * New upstream release 3.12.3.
-
- -- Iain Lane <iain.lane@canonical.com>  Thu, 06 Nov 2014 10:33:32 +0000
-
 gnome-terminal (3.12.2-3) unstable; urgency=medium
 
   * Explicitly disable search provider on non-linux.
@@ -535,52 +659,6 @@ gnome-terminal (3.12.2-1) unstable; urgency=medium
     - now included in upstream release.
 
  -- Andreas Henriksson <andreas@fatal.se>  Sun, 18 May 2014 22:27:40 +0200
-
-gnome-terminal (3.12.2-0ubuntu1) vivid; urgency=low
-
-  [ Iain Lane ]
-  * NOTE: This version changes behaviour around the "Switch to tab" keyboard
-    shortcuts. They are now active all the time, whereas previously they were
-    only active when you had a corresponding number of tabs open. If you need
-    to send these keys to your terminal, clear the shortcuts in the
-    preferences dialog.
-  * Drop 03_add_keywords.desktop: Not useful any more.
-  * Drop 20_add_alt_screen_toggle_ui.patch: Too much effort to maintain, not
-    deemed important enough to keep.
-  * Resynchronise with Debian, remaining changes:
-    - debian/patches/50_add_unity_quicklist.patch: Add Unity quicklist menu
-      item.
-    - debian/patches/60_add_lp_handler.patch: Add a handler for launchpad bug
-      URLs.
-  * Disable shell provider, we don't want to build-dep on gnome-shell.
-  * Bump build-dependencies according to configure.ac:
-    - intltool 0.50.0
-    - vte 0.36.0
-    - glib 2.39.2
-  * Make debian/patches/10_kfreebsd-f_dupfd_cloexec.patch apply again.
-  * Add build-dependency on libnautilus-extension-dev
-  * Add new patch debian/patches/nautilus-x11.patch
-    - build fails because of -Wl,-z,defs missing -lX11 in nautilus extension
-  * Include autoreconf.mk cdbs snippet and build-depend on dh-autoreconf
-  * Install new files in gnome-terminal
-    - nautilus extension
-  * debian/patches/0001-Restore-transparency.patch: Patch from Debarishi Ray
-    to re-add support for transparent terminals. Updated to support loading a
-    transparency value from the theme, if it provides one and to migrate the
-    settings from GConf.
-
-  [ Jeremy Bicha ]
-  * debian/rules:
-    - Build with --enable-distro-packaging to not override Ubuntu
-      environment variables
-  * debian/patches/52_support_apturl.patch:
-    - Support apt: URIs (LP: #217611)
-
-  [ Martin Pitt ]
-  * Add 61_cwd_fallback.patch: Provide fallback for reading current directory
-    if OSC 7 fails. (LP: #1132700)
-
- -- Iain Lane <iain.lane@canonical.com>  Wed, 05 Nov 2014 15:55:30 +0000
 
 gnome-terminal (3.12.0-2) unstable; urgency=medium
 
@@ -2552,4 +2630,3 @@ gnome-core (0.13-1) unstable; urgency=low
   * Initial Release.
 
  -- Jim Pick <jim@jimpick.com>  Mon, 16 Mar 1998 15:27:43 -0800
-
